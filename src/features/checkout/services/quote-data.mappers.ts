@@ -11,6 +11,9 @@ import type {
   ZoneData,
 } from '../types/quote.types';
 
+/** A deal is never promised faster than this, even if every item inside is quick. */
+const DEFAULT_PREP_MINUTES = 15;
+
 /** Prisma Decimal values only need toString() to become numbers. */
 type Money = { toString(): string } | number;
 
@@ -19,6 +22,7 @@ export interface ProductRow {
   nameEn: string;
   basePrice: Money;
   discountPrice: Money | null;
+  preparationTime: number;
   isActive: boolean;
   isAvailable: boolean;
   stockStatus: StockStatus;
@@ -42,6 +46,7 @@ export function mapProductData(row: ProductRow): ProductData {
     isAvailable: row.isAvailable,
     stockStatus: row.stockStatus,
     categoryActive: row.category.isActive,
+    preparationTime: row.preparationTime,
     variantGroups: row.variantGroups.map((group) => ({
       id: group.id,
       name: group.nameEn,
@@ -71,7 +76,12 @@ export interface DealRow {
   startDate: Date | null;
   endDate: Date | null;
   items: {
-    product: Pick<ProductRow, 'isActive' | 'isAvailable' | 'stockStatus' | 'category'>;
+    quantity: number;
+    variant: { nameEn: string } | null;
+    product: Pick<
+      ProductRow,
+      'nameEn' | 'preparationTime' | 'isActive' | 'isAvailable' | 'stockStatus' | 'category'
+    >;
   }[];
 }
 
@@ -88,17 +98,17 @@ export function mapDealData(row: DealRow): DealData {
     itemsOrderable:
       row.items.length > 0 &&
       row.items.every(({ product }) =>
-        isProductOrderable({
-          ...product,
-          categoryActive: product.category.isActive,
-          id: '',
-          name: '',
-          basePrice: 0,
-          discountPrice: null,
-          variantGroups: [],
-          addons: [],
-        }),
+        isProductOrderable({ ...product, categoryActive: product.category.isActive }),
       ),
+    items: row.items.map((item) => ({
+      productName: item.product.nameEn,
+      variantName: item.variant?.nameEn ?? null,
+      quantity: item.quantity,
+    })),
+    preparationTime: Math.max(
+      DEFAULT_PREP_MINUTES,
+      ...row.items.map((i) => i.product.preparationTime),
+    ),
   };
 }
 

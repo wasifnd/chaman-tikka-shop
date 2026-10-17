@@ -23,6 +23,7 @@ export default defineConfig({
         'src/lib/prisma/**',
         'src/**/testing/**', // shared test fixtures
         'src/**/*.repository.ts',
+        'src/**/*.store.ts',
         'src/features/**/server.ts',
       ],
       // Merge blocker: CI fails below these numbers.

@@ -19,7 +19,9 @@ import type {
 const issue = (code: QuoteIssue['code'], message: string, lineIndex?: number): QuoteIssue =>
   lineIndex === undefined ? { code, message } : { code, message, lineIndex };
 
-export function isProductOrderable(product: ProductData): boolean {
+export function isProductOrderable(
+  product: Pick<ProductData, 'isActive' | 'categoryActive' | 'isAvailable' | 'stockStatus'>,
+): boolean {
   return (
     product.isActive &&
     product.categoryActive &&
@@ -58,6 +60,8 @@ function priceProductLine(
   const problems: QuoteIssue[] = [];
   const chosen: Record<string, string> = {};
   const optionNames: string[] = [];
+  const chosenVariants: QuoteLine['variants'] = [];
+  const chosenAddons: QuoteLine['addons'] = [];
 
   for (const variantId of input.variantIds) {
     const group = product.variantGroups.find((g) => g.variants.some((v) => v.id === variantId));
@@ -73,6 +77,11 @@ function priceProductLine(
     } else {
       chosen[group.id] = variant.id;
       optionNames.push(variant.name);
+      chosenVariants.push({
+        id: variant.id,
+        name: variant.name,
+        priceModifier: variant.priceModifier,
+      });
     }
   }
 
@@ -94,6 +103,7 @@ function priceProductLine(
     } else {
       addonIds.add(addonId);
       optionNames.push(addon.name);
+      chosenAddons.push({ id: addon.id, name: addon.name, price: addon.price });
     }
   }
   if (problems.length > 0) return fail(...problems);
@@ -118,6 +128,10 @@ function priceProductLine(
       id: product.id,
       name: product.name,
       options: optionNames,
+      variants: chosenVariants,
+      addons: chosenAddons,
+      dealItems: [],
+      preparationTime: product.preparationTime,
       quantity: input.quantity,
       unitPrice,
       lineTotal: fromMinor(lineTotalMinor),
@@ -155,6 +169,10 @@ function priceDealLine(
       id: deal.id,
       name: deal.name,
       options: [],
+      variants: [],
+      addons: [],
+      dealItems: deal.items,
+      preparationTime: deal.preparationTime,
       quantity: input.quantity,
       unitPrice: fromMinor(unitMinor),
       lineTotal: fromMinor(lineTotalMinor),

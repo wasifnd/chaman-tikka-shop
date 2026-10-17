@@ -1,14 +1,8 @@
 import { z } from 'zod';
+import { pakistaniPhone } from '@/lib/validation/phone';
 
 // Trim and lowercase *before* validating, otherwise ' A@b.pk' fails the email check.
 const email = z.string().trim().toLowerCase().pipe(z.email('Enter a valid email'));
-
-// Pakistani mobile numbers: 03XXXXXXXXX or +923XXXXXXXXX (spaces and dashes allowed).
-const phone = z
-  .string()
-  .trim()
-  .transform((value) => value.replace(/[\s-]/g, ''))
-  .pipe(z.string().regex(/^(\+92|0)3\d{9}$/, 'Enter a valid mobile number, e.g. 03001234567'));
 
 export const signupSchema = z.object({
   name: z.string().trim().min(2, 'Name is too short').max(80),
@@ -19,7 +13,7 @@ export const signupSchema = z.object({
     .min(8, 'Use at least 8 characters')
     .refine((value) => new TextEncoder().encode(value).length <= 72, 'Password is too long'),
   // An untouched form field submits "", which must mean "not provided", not "invalid".
-  phone: z.union([z.literal('').transform(() => undefined), phone]).optional(),
+  phone: z.union([z.literal('').transform(() => undefined), pakistaniPhone]).optional(),
 });
 
 export const loginSchema = z.object({

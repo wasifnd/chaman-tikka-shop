@@ -9,7 +9,8 @@
     "deals": "Deals",
     "primary": "Main navigation",
     "cart": "Cart",
-    "cartWithCount": "Cart, {count, plural, one {# item} other {# items}}"
+    "cartWithCount": "Cart, {count, plural, one {# item} other {# items}}",
+    "checkout": "Checkout"
   },
   "header": {
     "login": "Log in",
@@ -143,5 +144,68 @@
       "LOGIN_REQUIRED": "Log in to use this coupon.",
       "MIN_ORDER": "Your order is too small for this coupon."
     }
+  },
+  "tracking": {
+    "title": "Your order",
+    "orderNumber": "Order {number}",
+    "placedBanner": "Thank you! We have received your order.",
+    "progress": "Order progress",
+    "status": {
+      "RECEIVED": "Order received",
+      "CONFIRMED": "Confirmed",
+      "PREPARING": "Being prepared",
+      "READY": "Ready",
+      "OUT_FOR_DELIVERY": "Out for delivery",
+      "DELIVERED": "Delivered",
+      "PICKED": "Picked up",
+      "SERVED": "Served",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled"
+    },
+    "type": {
+      "DELIVERY": "Delivery",
+      "PICKUP": "Pickup",
+      "DINE_IN": "Dine in"
+    },
+    "eta": "Ready around {time}",
+    "almostReady": "Almost ready",
+    "reconnecting": "Reconnecting to live updates",
+    "offline": "Live updates are paused. This page refreshes automatically.",
+    "cancelled": "This order was cancelled. Please call the restaurant if you have questions.",
+    "items": "Your items",
+    "deliveringTo": "Delivering to {area}",
+    "payCod": "Pay in cash when your order arrives.",
+    "payCounter": "Pay in cash at the counter.",
+    "stepCurrent": "current step",
+    "stepDone": "done"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "details": "Your details",
+    "name": "Full name",
+    "phone": "Mobile number",
+    "email": "Email (optional)",
+    "emailHint": "We will send your order confirmation here.",
+    "address": "Delivery address",
+    "addressLine1": "Street address",
+    "addressLine2": "Apartment or landmark (optional)",
+    "deliveringTo": "Delivering to {area}",
+    "instructions": "Notes for the kitchen (optional)",
+    "placeOrder": "Place order",
+    "placing": "Placing your order",
+    "payCod": "You will pay in cash when your order arrives.",
+    "payCounter": "You will pay in cash at the counter.",
+    "review": "Your order",
+    "backToCart": "Back to cart",
+    "needsAttention": "Some items need attention. Please review your cart.",
+    "priceChanged": "The price changed while you were checking out. Your total is now {total}. Please check it and place your order again.",
+    "couponExhausted": "That coupon has just been fully used. Please review your order.",
+    "tooMany": "Too many attempts. Please wait a moment and try again.",
+    "inProgress": "Your order is still being placed. Please wait a moment.",
+    "failed": "We could not place your order. Please try again.",
+    "cannotOrder": "Fix the items in your cart to continue.",
+    "proceed": "Checkout",
+    "emptyCart": "Your cart is empty.",
+    "browseMenu": "Browse the menu"
   }
 }
