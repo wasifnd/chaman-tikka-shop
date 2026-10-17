@@ -113,6 +113,42 @@ describe('line pricing', () => {
   });
 });
 
+describe('order snapshots', () => {
+  it('records exactly which variants and add-ons were priced, with their prices', () => {
+    const quote = buildQuote(
+      pickup([tikkaLine({ variantIds: [ids.half], addonIds: [ids.raita, ids.chutney] })]),
+      quoteData(),
+      OPEN_NOW,
+    );
+    expect(quote.lines[0]?.variants).toEqual([{ id: ids.half, name: 'Half', priceModifier: 330 }]);
+    expect(quote.lines[0]?.addons).toEqual([
+      { id: ids.raita, name: 'Raita', price: 50 },
+      { id: ids.chutney, name: 'Mint chutney', price: 30 },
+    ]);
+    expect(quote.lines[0]?.dealItems).toEqual([]);
+  });
+
+  it('carries the preparation time of products and deals', () => {
+    const quote = buildQuote(pickup([naanLine(), dealLine()]), quoteData(), OPEN_NOW);
+    expect(quote.lines[0]?.preparationTime).toBe(15);
+    expect(quote.lines[1]?.preparationTime).toBe(25);
+  });
+
+  it('copies what a deal contains so the kitchen knows what to make', () => {
+    const quote = buildQuote(pickup([dealLine()]), quoteData(), OPEN_NOW);
+    expect(quote.lines[0]?.dealItems).toEqual([
+      { productName: 'Chicken Tikka', variantName: null, quantity: 2 },
+      { productName: 'Naan', variantName: null, quantity: 4 },
+    ]);
+    expect(quote.lines[0]?.variants).toEqual([]);
+  });
+
+  it('gives plain products empty option snapshots', () => {
+    const quote = buildQuote(pickup([naanLine()]), quoteData(), OPEN_NOW);
+    expect(quote.lines[0]).toMatchObject({ variants: [], addons: [], dealItems: [] });
+  });
+});
+
 describe('option validation', () => {
   const rejected = (line: CartLineInput, code: IssueCode, data = quoteData()) => {
     const quote = buildQuote(pickup([line]), data, OPEN_NOW);

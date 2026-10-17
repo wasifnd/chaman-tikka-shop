@@ -1,4 +1,10 @@
 import type { PrismaClient } from '@prisma/client';
+
+/** Works with the normal client and with the client handed out inside a transaction. */
+export type QuoteDb = Pick<
+  PrismaClient,
+  'product' | 'deal' | 'deliveryZone' | 'coupon' | 'setting' | 'businessHour'
+>;
 import type { QuoteData, QuoteInput } from '../types/quote.types';
 import {
   mapCouponData,
@@ -15,7 +21,7 @@ const unique = (values: string[]) => [...new Set(values)];
  * Loads exactly the rows a quote needs: only the products and deals in the cart, the chosen
  * zone and coupon, plus settings and opening hours. Read-only.
  */
-export function createQuoteLoader(prisma: PrismaClient) {
+export function createQuoteLoader(prisma: QuoteDb) {
   return async function load(input: QuoteInput): Promise<QuoteData> {
     const productIds = unique(
       input.lines.flatMap((line) => (line.kind === 'product' ? [line.productId] : [])),
@@ -35,6 +41,7 @@ export function createQuoteLoader(prisma: PrismaClient) {
               nameEn: true,
               basePrice: true,
               discountPrice: true,
+              preparationTime: true,
               isActive: true,
               isAvailable: true,
               stockStatus: true,
@@ -70,8 +77,12 @@ export function createQuoteLoader(prisma: PrismaClient) {
               endDate: true,
               items: {
                 select: {
+                  quantity: true,
+                  variant: { select: { nameEn: true } },
                   product: {
                     select: {
+                      nameEn: true,
+                      preparationTime: true,
                       isActive: true,
                       isAvailable: true,
                       stockStatus: true,

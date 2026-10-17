@@ -34,6 +34,7 @@ export function product(overrides: Partial<ProductData> = {}): ProductData {
     isAvailable: true,
     stockStatus: 'IN_STOCK',
     categoryActive: true,
+    preparationTime: 15,
     variantGroups: [],
     addons: [],
     ...overrides,
@@ -78,6 +79,11 @@ export function deal(overrides: Partial<DealData> = {}): DealData {
     startDate: null,
     endDate: null,
     itemsOrderable: true,
+    items: [
+      { productName: 'Chicken Tikka', variantName: null, quantity: 2 },
+      { productName: 'Naan', variantName: null, quantity: 4 },
+    ],
+    preparationTime: 25,
     ...overrides,
   };
 }

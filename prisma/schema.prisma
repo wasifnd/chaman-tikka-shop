@@ -375,13 +375,13 @@ model OrderItem {
 
 // Immutable audit trail of every status change.
 model OrderStatusHistory {
-  id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  orderId         String      @map("order_id") @db.Uuid
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId         String       @map("order_id") @db.Uuid
   fromStatus      OrderStatus? @map("from_status")
   status          OrderStatus
-  changedByUserId String?     @map("changed_by_user_id") @db.Uuid
+  changedByUserId String?      @map("changed_by_user_id") @db.Uuid
   note            String?
-  createdAt       DateTime    @default(now()) @map("created_at")
+  createdAt       DateTime     @default(now()) @map("created_at")
 
   order     Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
   changedBy User? @relation(fields: [changedByUserId], references: [id])
@@ -408,9 +408,12 @@ model OrderEvent {
 
 // Prevents duplicate orders when the client retries a checkout request.
 model IdempotencyKey {
-  key       String   @id
-  orderId   String?  @map("order_id") @db.Uuid
-  createdAt DateTime @default(now()) @map("created_at")
+  key         String   @id
+  // Hash of the request that claimed the key: the same key with a different cart is a conflict,
+  // not a replay, so one customer can never read another customer's order.
+  requestHash String   @map("request_hash")
+  orderId     String?  @map("order_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
 
   @@map("idempotency_keys")
 }

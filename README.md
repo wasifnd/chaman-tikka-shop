@@ -30,3 +30,15 @@ Run them all before pushing:
 ```bash
 npm run format:check && npm run lint && npm run typecheck && npm run test:coverage
 ```
+
+## Database tests
+
+Most tests need no database. A few (pricing and order placement) run against real Postgres to prove
+things like "two simultaneous orders never get the same number". They are skipped unless you set a URL:
+
+```bash
+INTEGRATION_DATABASE_URL="postgresql://..." npm test
+```
+
+They create a private, temporary schema from the real migrations and delete it afterwards, so they never
+touch your data, even on your development database. CI runs them against a throwaway Postgres container.

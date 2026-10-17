@@ -13,11 +13,13 @@ import { useCartHydrated } from '../store/useCartHydrated';
 import { useCartStore } from '../store/useCartStore';
 import { CartLineRow } from './CartLineRow';
 import { CartSummary } from './CartSummary';
+import { shouldShowDelivery } from './delivery-visibility';
 import { CouponBox } from './CouponBox';
 import { OrderOptions } from './OrderOptions';
 
 export function CartView({ zones }: { zones: ZoneOption[] }) {
   const t = useTranslations('cart');
+  const tCheckout = useTranslations('checkout');
   const hydrated = useCartHydrated();
   const items = useCartStore((state) => state.items);
   const orderType = useCartStore((state) => state.orderType);
@@ -60,11 +62,7 @@ export function CartView({ zones }: { zones: ZoneOption[] }) {
   const isCurrent = quote.data !== undefined && !quote.isPlaceholderData;
   const current = isCurrent ? quote.data : undefined;
   const generalIssues = (current?.issues ?? []).filter((issue) => issue.lineIndex === undefined);
-  // Until a valid area is chosen the delivery charge is unknown, so showing "Free" would mislead.
-  const areaProblem = (quote.data?.issues ?? []).some(
-    (issue) => issue.code === 'ZONE_REQUIRED' || issue.code === 'ZONE_INVALID',
-  );
-  const showDelivery = orderType === 'DELIVERY' && zoneId !== null && !areaProblem;
+  const showDelivery = shouldShowDelivery(orderType, zoneId, quote.data);
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
@@ -135,6 +133,18 @@ export function CartView({ zones }: { zones: ZoneOption[] }) {
             {issue.code === 'RESTAURANT_CLOSED' ? ` ${t('closedHours')}` : ''}
           </Alert>
         ))}
+
+        {/* Only offered when the server says this exact cart can be ordered. */}
+        {current?.canCheckout ? (
+          <Link
+            href="/checkout"
+            className="bg-ember focus-visible:outline-ember inline-flex min-h-11 items-center justify-center rounded-lg px-4 font-semibold text-white hover:bg-orange-600 focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
+            {tCheckout('proceed')}
+          </Link>
+        ) : current ? (
+          <p className="text-sm text-stone-400">{tCheckout('cannotOrder')}</p>
+        ) : null}
       </aside>
     </div>
   );

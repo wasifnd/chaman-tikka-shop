@@ -357,6 +357,41 @@ describe('problems the server finds', () => {
   });
 });
 
+describe('proceeding to checkout', () => {
+  it('offers Checkout when the server says the cart can be ordered', async () => {
+    seedCart([naanItem()]);
+    serveQuotes();
+    renderCart();
+    expect(await screen.findByRole('link', { name: 'Checkout' })).toHaveAttribute(
+      'href',
+      '/checkout',
+    );
+  });
+
+  it('does not offer Checkout when something blocks the order', async () => {
+    seedCart([naanItem()]);
+    serveQuotes({}, CLOSED_NOW);
+    renderCart();
+    expect(await screen.findByText('Fix the items in your cart to continue.')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Checkout' })).toBeNull();
+  });
+
+  it('does not offer Checkout while the delivery area is missing', async () => {
+    seedCart([naanItem()], { orderType: 'DELIVERY' });
+    serveQuotes();
+    renderCart();
+    await screen.findByText('Choose your delivery area.');
+    expect(screen.queryByRole('link', { name: 'Checkout' })).toBeNull();
+  });
+
+  it('does not offer Checkout before the first price has arrived', () => {
+    seedCart([naanItem()]);
+    serveQuotes();
+    renderCart();
+    expect(screen.queryByRole('link', { name: 'Checkout' })).toBeNull();
+  });
+});
+
 describe('when the price service fails', () => {
   it('tells the customer and recovers on retry', async () => {
     seedCart([naanItem()]);

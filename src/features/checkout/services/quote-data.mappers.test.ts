@@ -17,6 +17,7 @@ const productRow: ProductRow = {
   nameEn: 'Chicken Tikka',
   basePrice: decimal('350.00'),
   discountPrice: decimal('300.00'),
+  preparationTime: 12,
   isActive: true,
   isAvailable: true,
   stockStatus: 'IN_STOCK',
@@ -41,6 +42,7 @@ describe('mapProductData', () => {
       name: 'Chicken Tikka',
       basePrice: 350,
       discountPrice: 300,
+      preparationTime: 12,
       isActive: true,
       isAvailable: true,
       stockStatus: 'IN_STOCK',
@@ -64,11 +66,18 @@ describe('mapProductData', () => {
 
 describe('mapDealData', () => {
   const live = {
+    nameEn: 'Naan',
+    preparationTime: 10,
     isActive: true,
     isAvailable: true,
     stockStatus: 'IN_STOCK' as const,
     category: { isActive: true },
   };
+  const line = (product: DealRow['items'][number]['product'], quantity = 1) => ({
+    quantity,
+    variant: null,
+    product,
+  });
   const dealRow = (items: DealRow['items']): DealRow => ({
     id: 'd1',
     nameEn: 'Family Platter',
@@ -81,7 +90,7 @@ describe('mapDealData', () => {
   });
 
   it('is sellable when every item is sellable', () => {
-    const mapped = mapDealData(dealRow([{ product: live }, { product: live }]));
+    const mapped = mapDealData(dealRow([line(live), line(live)]));
     expect(mapped).toMatchObject({
       id: 'd1',
       name: 'Family Platter',
@@ -96,7 +105,29 @@ describe('mapDealData', () => {
     ['out of stock', { ...live, stockStatus: 'OUT_OF_STOCK' as const }],
     ['in a hidden category', { ...live, category: { isActive: false } }],
   ])('is not sellable when one item is %s', (_name, bad) => {
-    expect(mapDealData(dealRow([{ product: live }, { product: bad }])).itemsOrderable).toBe(false);
+    expect(mapDealData(dealRow([line(live), line(bad)])).itemsOrderable).toBe(false);
+  });
+
+  it('copies what the deal contains and takes the slowest item as prep time', () => {
+    const mapped = mapDealData(
+      dealRow([
+        {
+          quantity: 2,
+          variant: { nameEn: 'Full' },
+          product: { ...live, nameEn: 'Tikka', preparationTime: 25 },
+        },
+        line({ ...live, preparationTime: 5 }, 4),
+      ]),
+    );
+    expect(mapped.items).toEqual([
+      { productName: 'Tikka', variantName: 'Full', quantity: 2 },
+      { productName: 'Naan', variantName: null, quantity: 4 },
+    ]);
+    expect(mapped.preparationTime).toBe(25);
+  });
+
+  it('never promises a deal faster than 15 minutes', () => {
+    expect(mapDealData(dealRow([line({ ...live, preparationTime: 3 })])).preparationTime).toBe(15);
   });
 
   it('is not sellable when it has no items', () => {
@@ -106,7 +137,7 @@ describe('mapDealData', () => {
   it('passes the date window through for the engine to check', () => {
     const start = new Date('2026-01-01T00:00:00Z');
     const end = new Date('2026-02-01T00:00:00Z');
-    const mapped = mapDealData({ ...dealRow([{ product: live }]), startDate: start, endDate: end });
+    const mapped = mapDealData({ ...dealRow([line(live)]), startDate: start, endDate: end });
     expect(mapped.startDate).toBe(start);
     expect(mapped.endDate).toBe(end);
   });

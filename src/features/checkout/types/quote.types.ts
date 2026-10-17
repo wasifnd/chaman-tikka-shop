@@ -42,6 +42,8 @@ export interface ProductData {
   isAvailable: boolean;
   stockStatus: StockStatus;
   categoryActive: boolean;
+  /** Minutes to prepare, used to estimate when an order will be ready. */
+  preparationTime: number;
   variantGroups: {
     id: string;
     name: string;
@@ -61,6 +63,16 @@ export interface DealData {
   endDate: Date | null;
   /** False when any product inside the deal can't currently be sold. */
   itemsOrderable: boolean;
+  /** What the deal contains, copied onto the order so the kitchen knows what to make. */
+  items: DealContent[];
+  /** Slowest item in the deal, in minutes. */
+  preparationTime: number;
+}
+
+export interface DealContent {
+  productName: string;
+  variantName: string | null;
+  quantity: number;
 }
 
 export interface ZoneData {
@@ -139,8 +151,15 @@ export interface QuoteLine {
   kind: 'product' | 'deal';
   id: string;
   name: string;
-  /** Chosen variant and add-on names, for display and for order snapshots. */
+  /** Chosen variant and add-on names, for display. */
   options: string[];
+  /** Exactly what was chosen and priced, copied onto the order as a snapshot. */
+  variants: { id: string; name: string; priceModifier: number }[];
+  addons: { id: string; name: string; price: number }[];
+  /** For deals: the items inside. Empty for products. */
+  dealItems: DealContent[];
+  /** Minutes to prepare this line. */
+  preparationTime: number;
   quantity: number;
   unitPrice: number;
   lineTotal: number;
