@@ -22,7 +22,7 @@ describe('env()', () => {
 describe('parseEnv', () => {
   it('applies defaults', () => {
     const env = parseEnv(valid);
-    expect(env.ACCESS_TOKEN_TTL).toBe('15m');
+    expect(env.ACCESS_TOKEN_TTL_SECONDS).toBe(900);
     expect(env.REFRESH_TOKEN_TTL_DAYS).toBe(7);
     expect(env.NEXT_PUBLIC_APP_URL).toBe('http://localhost:3000');
   });
