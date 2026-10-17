@@ -41,6 +41,69 @@ const products = [
   { slug: 'cold-drink', nameEn: 'Cold Drink', category: 'drinks', price: 90, popular: false },
 ];
 
+/** Portion choices, add-ons and one deal, so the menu and product pages have real options. */
+async function seedOptionsAndDeals() {
+  const tikka = await prisma.product.findUnique({ where: { slug: 'chicken-tikka' } });
+  const boti = await prisma.product.findUnique({ where: { slug: 'malai-boti' } });
+  const naan = await prisma.product.findUnique({ where: { slug: 'naan' } });
+  const drink = await prisma.product.findUnique({ where: { slug: 'cold-drink' } });
+  if (!tikka || !boti || !naan || !drink) return;
+
+  const hasVariants = await prisma.productVariantGroup.count({ where: { productId: tikka.id } });
+  if (hasVariants === 0) {
+    await prisma.productVariantGroup.create({
+      data: {
+        productId: tikka.id,
+        nameEn: 'Portion',
+        isRequired: true,
+        variants: {
+          create: [
+            { nameEn: 'Quarter', priceModifier: 0, sortOrder: 1 },
+            { nameEn: 'Half', priceModifier: 330, sortOrder: 2 },
+            { nameEn: 'Full', priceModifier: 650, sortOrder: 3 },
+          ],
+        },
+      },
+    });
+  }
+
+  if ((await prisma.addon.count()) === 0) {
+    const addons = await Promise.all(
+      [
+        { nameEn: 'Raita', price: 50 },
+        { nameEn: 'Mint chutney', price: 30 },
+        { nameEn: 'Extra naan', price: 30 },
+      ].map((addon) => prisma.addon.create({ data: addon })),
+    );
+    for (const product of [tikka, boti]) {
+      await prisma.productAddon.createMany({
+        data: addons.map((addon) => ({ productId: product.id, addonId: addon.id })),
+      });
+    }
+  }
+
+  const deal = await prisma.deal.findUnique({ where: { slug: 'family-platter' } });
+  if (!deal) {
+    await prisma.deal.create({
+      data: {
+        slug: 'family-platter',
+        nameEn: 'Family Platter',
+        descriptionEn: 'Tikka, malai boti, fresh naan and drinks for the whole table.',
+        price: 1350,
+        isFeatured: true,
+        items: {
+          create: [
+            { productId: tikka.id, quantity: 2 },
+            { productId: boti.id, quantity: 1 },
+            { productId: naan.id, quantity: 4 },
+            { productId: drink.id, quantity: 4 },
+          ],
+        },
+      },
+    });
+  }
+}
+
 async function main() {
   const categoryIds = new Map<string, string>();
   for (const c of categories) {
@@ -64,6 +127,8 @@ async function main() {
       },
     });
   }
+
+  await seedOptionsAndDeals();
 
   // 18:00 -> 02:00 every day (closing time earlier than opening = after midnight).
   for (let day = 0; day < 7; day++) {
