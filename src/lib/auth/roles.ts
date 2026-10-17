@@ -1,7 +1,8 @@
 export const ROLES = ['CUSTOMER', 'STORE_STAFF', 'ADMIN', 'SUPER_ADMIN'] as const;
 export type Role = (typeof ROLES)[number];
 
-const ADMIN_ROLES: readonly Role[] = ['ADMIN', 'SUPER_ADMIN'];
+/** Who may change the menu, settings and team in the admin panel (and call its APIs). */
+export const ADMIN_ROLES: readonly Role[] = ['ADMIN', 'SUPER_ADMIN'];
 const STORE_ROLES: readonly Role[] = ['STORE_STAFF', ...ADMIN_ROLES];
 
 /** Who may see and change orders in the store panel (and call its APIs). */
