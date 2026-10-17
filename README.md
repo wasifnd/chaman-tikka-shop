@@ -51,3 +51,17 @@ simplified screen for the kitchen: only what has to be cooked, with one big butt
 `npm run db:seed` creates two demo accounts for local development: `staff@bbqstore.local` (store staff)
 and `admin@bbqstore.local`. Their password is `SEED_DEMO_PASSWORD` if set, otherwise a default written in
 `prisma/seed.ts`. **Change it, or delete these accounts, before going live.**
+
+## Admin panel
+
+Sign in as an admin and open `/admin`. From there the owner can edit categories, menu items (with options such as portion size, and add-ons), deals, delivery areas, coupons, opening hours, tax, and the team's accounts, and search every order ever placed. Changes reach customers at once. Photos are Cloudinary addresses; set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` and `CLOUDINARY_API_SECRET` to enable the Upload button (optional).
+
+## End-to-end scenarios
+
+`npm run e2e` drives a running site over HTTP as a guest, a customer, store staff and an admin (about 250 checks: ordering, kitchen flow, live feed, menu and settings changes, team management, security). No browser is needed. Start the site first (`npm run build && npm start`), then:
+
+```bash
+E2E_BASE_URL=http://localhost:3000 npm run e2e
+```
+
+They create their own menu items and put everything back afterwards. Use a development or CI database, never production.
