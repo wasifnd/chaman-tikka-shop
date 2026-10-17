@@ -14,6 +14,7 @@ import { postJson } from '@/shared/utils/api';
 import { loginSchema, type LoginFormValues, type LoginInput } from '../schemas/auth.schema';
 import { SESSION_QUERY_KEY } from '../hooks/useSession';
 import { splitApiError } from '../utils/api-errors';
+import { postLoginPath, readRole } from '../utils/post-login';
 
 export function LoginForm({ next }: { next: string }) {
   const t = useTranslations('auth');
@@ -42,7 +43,7 @@ export function LoginForm({ next }: { next: string }) {
       return;
     }
     await queryClient.invalidateQueries({ queryKey: SESSION_QUERY_KEY });
-    router.push(next);
+    router.push(postLoginPath(readRole(result.data), next));
     router.refresh();
   }
 

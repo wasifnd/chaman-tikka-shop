@@ -15,8 +15,9 @@ const UNKNOWN_ERROR: ApiError = {
   message: 'Something went wrong. Please try again.',
 };
 
-/** POSTs JSON to our own API and unwraps the { success, data | error } envelope. */
-export async function postJson(
+/** Sends JSON to our own API and unwraps the { success, data | error } envelope. */
+export async function requestJson(
+  method: 'POST' | 'PATCH' | 'PUT' | 'DELETE',
   url: string,
   body?: unknown,
   fetcher: typeof fetch = fetch,
@@ -24,7 +25,7 @@ export async function postJson(
   let response: Response;
   try {
     response = await fetcher(url, {
-      method: 'POST',
+      method,
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
@@ -41,4 +42,13 @@ export async function postJson(
   }
   if (response.ok && payload.success) return { ok: true, data: payload.data };
   return { ok: false, error: payload.error ?? UNKNOWN_ERROR };
+}
+
+/** POSTs JSON to our own API and unwraps the response envelope. */
+export function postJson(
+  url: string,
+  body?: unknown,
+  fetcher: typeof fetch = fetch,
+): Promise<ApiResult> {
+  return requestJson('POST', url, body, fetcher);
 }

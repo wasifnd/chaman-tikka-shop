@@ -16,7 +16,8 @@
     "login": "Log in",
     "signup": "Sign up",
     "logout": "Log out",
-    "loggingOut": "Logging out"
+    "loggingOut": "Logging out",
+    "store": "Store"
   },
   "footer": {
     "tagline": "Lahore's finest BBQ.",
@@ -207,5 +208,91 @@
     "proceed": "Checkout",
     "emptyCart": "Your cart is empty.",
     "browseMenu": "Browse the menu"
+  },
+  "store": {
+    "nav": {
+      "label": "Store navigation",
+      "orders": "Orders",
+      "kitchen": "Kitchen display"
+    },
+    "title": "Store orders",
+    "kitchenTitle": "Kitchen",
+    "columns": {
+      "new": "New",
+      "kitchen": "In the kitchen",
+      "ready": "Ready",
+      "handover": "On its way / handed over"
+    },
+    "emptyColumn": "Nothing here",
+    "noOrders": "No active orders. New orders appear here by themselves.",
+    "kitchenEmpty": "Nothing to cook right now.",
+    "actions": {
+      "CONFIRMED": "Accept",
+      "PREPARING": "Start preparing",
+      "READY": "Mark ready",
+      "OUT_FOR_DELIVERY": "Out for delivery",
+      "DELIVERED": "Delivered",
+      "PICKED": "Picked up",
+      "SERVED": "Served",
+      "COMPLETED": "Complete",
+      "reject": "Reject",
+      "cancel": "Cancel order"
+    },
+    "kitchenActions": {
+      "CONFIRMED": "Accept",
+      "PREPARING": "Start",
+      "READY": "Ready"
+    },
+    "reasonLabel": "Reason (shown to staff)",
+    "reasonRequired": "Please give a reason.",
+    "confirm": "Confirm",
+    "keepOrder": "Keep order",
+    "newOrderBanner": "New order {number}",
+    "dismiss": "Dismiss",
+    "waiting": "Placed {age}",
+    "type": {
+      "DELIVERY": "Delivery",
+      "PICKUP": "Pickup",
+      "DINE_IN": "Dine in"
+    },
+    "deliverTo": "Deliver to",
+    "notes": "Notes",
+    "itemNote": "Note: {note}",
+    "readyBy": "Ready by {time}",
+    "collect": "Collect {amount} in cash",
+    "paid": "Paid",
+    "callCustomer": "Call {name}",
+    "cancelled": "Cancelled: {reason}",
+    "cancelledNoReason": "Cancelled",
+    "connection": {
+      "live": "Live",
+      "connecting": "Connecting",
+      "reconnecting": "Reconnecting",
+      "offline": "Offline, refreshing automatically"
+    },
+    "sound": {
+      "enable": "Turn on sound",
+      "on": "Sound on",
+      "off": "Turn off sound",
+      "blocked": "Tap anywhere to start sound",
+      "unsupported": "Sound is not supported in this browser"
+    },
+    "signedOut": "Your session has ended.",
+    "signIn": "Log in again",
+    "loadFailed": "Could not load orders.",
+    "retry": "Try again",
+    "errors": {
+      "INVALID_TRANSITION": "Someone else already updated this order. The screen has been refreshed.",
+      "REASON_REQUIRED": "Please give a reason for cancelling.",
+      "ORDER_NOT_FOUND": "That order no longer exists.",
+      "generic": "Could not update the order. Please try again."
+    },
+    "finished": {
+      "show": "Show recently finished orders",
+      "hide": "Hide recently finished orders",
+      "title": "Recently finished",
+      "empty": "Nothing finished in the last 12 hours."
+    },
+    "panel": "Store panel"
   }
 }

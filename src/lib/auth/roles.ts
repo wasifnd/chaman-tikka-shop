@@ -4,6 +4,11 @@ export type Role = (typeof ROLES)[number];
 const ADMIN_ROLES: readonly Role[] = ['ADMIN', 'SUPER_ADMIN'];
 const STORE_ROLES: readonly Role[] = ['STORE_STAFF', ...ADMIN_ROLES];
 
+/** Who may see and change orders in the store panel (and call its APIs). */
+export const STAFF_ROLES: readonly Role[] = STORE_ROLES;
+
+export const isStaffRole = (role: Role): boolean => STAFF_ROLES.includes(role);
+
 /**
  * Roles allowed on a page path, or null when the path is public.
  * Only a coarse, optimistic check: real authorization is re-checked in handlers.
