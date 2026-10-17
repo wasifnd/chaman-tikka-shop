@@ -1,20 +1,53 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 import { useState } from 'react';
+import { useCartHydrated } from '@/features/cart/store/useCartHydrated';
+import { useCartStore } from '@/features/cart/store/useCartStore';
+import { Button } from '@/shared/components/ui/Button';
+import { QuantityStepper } from '@/shared/components/ui/QuantityStepper';
 import { formatPrice } from '@/shared/utils/format';
 import { calculateUnitPrice, missingRequiredGroups, type Selection } from '../pricing';
 import type { ProductDetail } from '../types/menu.types';
 
-/** Variant and add-on pickers with a live total. The cart button arrives with checkout. */
+/** Variant and add-on pickers with a live total and an add-to-cart button. */
 export function ProductOptions({ product }: { product: ProductDetail }) {
   const t = useTranslations('product');
+  const tc = useTranslations('cart');
   const [selection, setSelection] = useState<Selection>({ variants: {}, addonIds: [] });
+  const [quantity, setQuantity] = useState(1);
+  const [justAdded, setJustAdded] = useState(false);
+  const addToCart = useCartStore((state) => state.add);
+  // Adding before the saved cart is loaded would overwrite it, so wait.
+  const cartReady = useCartHydrated();
 
   const total = calculateUnitPrice(product.price, product.variantGroups, product.addons, selection);
   const missing = missingRequiredGroups(product.variantGroups, selection);
+  const canAdd = product.orderable && missing.length === 0 && cartReady;
+
+  function add() {
+    const chosenVariants = product.variantGroups.flatMap((group) => {
+      const variant = group.variants.find((v) => v.id === selection.variants[group.id]);
+      return variant ? [variant] : [];
+    });
+    const chosenAddons = product.addons.filter((addon) => selection.addonIds.includes(addon.id));
+    addToCart({
+      kind: 'product',
+      productId: product.id,
+      name: product.name,
+      unitPrice: total,
+      quantity,
+      variantIds: chosenVariants.map((v) => v.id),
+      addonIds: chosenAddons.map((a) => a.id),
+      optionLabels: [...chosenVariants.map((v) => v.name), ...chosenAddons.map((a) => a.name)],
+    });
+    setQuantity(1);
+    setJustAdded(true);
+  }
 
   function chooseVariant(groupId: string, variantId: string) {
+    setJustAdded(false);
     setSelection((current) => ({
       ...current,
       variants: { ...current.variants, [groupId]: variantId || undefined },
@@ -22,6 +55,7 @@ export function ProductOptions({ product }: { product: ProductDetail }) {
   }
 
   function toggleAddon(addonId: string, checked: boolean) {
+    setJustAdded(false);
     setSelection((current) => ({
       ...current,
       addonIds: checked
@@ -99,6 +133,34 @@ export function ProductOptions({ product }: { product: ProductDetail }) {
         {!product.orderable ? (
           <p className="mt-1 text-sm text-stone-400">{t('unavailable')}</p>
         ) : null}
+
+        {product.orderable ? (
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <QuantityStepper
+              value={quantity}
+              onChange={(next) => {
+                setQuantity(next);
+                setJustAdded(false);
+              }}
+              label={t('quantity')}
+              decreaseLabel={tc('decrease')}
+              increaseLabel={tc('increase')}
+            />
+            <Button className="flex-1" disabled={!canAdd} onClick={add}>
+              {t('addToCart')}
+            </Button>
+          </div>
+        ) : null}
+        <p role="status" className="mt-2 min-h-5 text-sm text-green-400">
+          {justAdded ? (
+            <>
+              {t('added', { name: product.name })}{' '}
+              <Link href="/cart" className="underline">
+                {t('viewCart')}
+              </Link>
+            </>
+          ) : null}
+        </p>
       </div>
     </div>
   );

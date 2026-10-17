@@ -21,6 +21,7 @@ export default defineConfig({
         // Thin Prisma/env wiring with no branching logic; covered by the DB integration and
         // Playwright flows added in later phases. Business logic stays in tested modules.
         'src/lib/prisma/**',
+        'src/**/testing/**', // shared test fixtures
         'src/**/*.repository.ts',
         'src/features/**/server.ts',
       ],

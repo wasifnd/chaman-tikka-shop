@@ -31,6 +31,8 @@ jobs:
           --health-timeout 3s --health-retries 10
     env:
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      # Turns on the database integration tests (read-only, seeded data).
+      INTEGRATION_DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
       JWT_ACCESS_SECRET: ci-access-secret-ci-access-secret-ci-access
       JWT_REFRESH_SECRET: ci-refresh-secret-ci-refresh-secret-ci-refresh
     steps:
@@ -43,6 +45,8 @@ jobs:
       - run: npm run format:check
       - run: npm run lint
       - run: npm run typecheck
+      - name: Apply migrations and seed the CI database
+        run: npm run db:setup
       - name: Tests with coverage gate (80%)
         run: npm run test:coverage
       - uses: codecov/codecov-action@v5
@@ -50,8 +54,6 @@ jobs:
         with:
           files: coverage/lcov.info
           fail_ci_if_error: false
-      - name: Apply migrations and seed the CI database
-        run: npm run db:setup
       - run: npm run build
 
   audit:

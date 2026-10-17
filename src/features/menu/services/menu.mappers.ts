@@ -1,3 +1,4 @@
+import { effectivePrice } from '../pricing';
 import type {
   DealSummary,
   MenuCategory,
@@ -31,15 +32,15 @@ export interface ProductRow {
 export function mapProduct(row: ProductRow): MenuProduct {
   const base = toNumber(row.basePrice);
   const discount = row.discountPrice === null ? null : toNumber(row.discountPrice);
-  const hasDiscount = discount !== null && discount < base;
+  const price = effectivePrice(base, discount);
   return {
     id: row.id,
     slug: row.slug,
     name: row.nameEn,
     description: row.descriptionEn,
     categorySlug: row.category.slug,
-    price: hasDiscount ? discount : base,
-    originalPrice: hasDiscount ? base : null,
+    price,
+    originalPrice: price < base ? base : null,
     thumbnailUrl: row.thumbnailUrl,
     preparationTime: row.preparationTime,
     isFeatured: row.isFeatured,

@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { AuthMenu } from '@/features/auth/components/AuthMenu';
+import { CartLink } from '@/features/cart/components/CartLink';
 
 const navLink =
   'inline-flex min-h-11 items-center px-3 text-sm text-stone-300 hover:text-white focus-visible:outline-2 focus-visible:outline-ember';
@@ -25,7 +26,10 @@ export async function Header() {
             {nav('deals')}
           </Link>
         </nav>
-        <AuthMenu />
+        <div className="flex items-center gap-1">
+          <CartLink />
+          <AuthMenu />
+        </div>
       </div>
     </header>
   );
