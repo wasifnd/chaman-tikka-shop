@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { AddDealToCart } from '@/features/deals/components/AddDealToCart';
 import { getDeal, getDeals } from '@/features/menu/server';
 import { siteUrl } from '@/lib/site';
 import { JsonLd } from '@/shared/components/seo/JsonLd';
@@ -76,6 +77,7 @@ export default async function DealPage({ params }: Props) {
               })}
             </p>
           ) : null}
+          <AddDealToCart deal={deal} />
           <section>
             <h2 className="mb-2 font-semibold">{t('includes')}</h2>
             <ul className="flex flex-col gap-1 text-stone-300">

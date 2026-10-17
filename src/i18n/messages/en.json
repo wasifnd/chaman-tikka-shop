@@ -7,7 +7,9 @@
   "nav": {
     "menu": "Menu",
     "deals": "Deals",
-    "primary": "Main navigation"
+    "primary": "Main navigation",
+    "cart": "Cart",
+    "cartWithCount": "Cart, {count, plural, one {# item} other {# items}}"
   },
   "header": {
     "login": "Log in",
@@ -57,7 +59,12 @@
     "choose": "Choose: {groups}",
     "prepTime": "Ready in about {count} min",
     "unavailable": "This item is not available right now.",
-    "related": "More from {category}"
+    "related": "More from {category}",
+    "quantity": "Quantity",
+    "addToCart": "Add to cart",
+    "added": "Added {name} to your cart.",
+    "viewCart": "View cart",
+    "loadingCart": "Loading your cart"
   },
   "deals": {
     "title": "Deals",
@@ -67,7 +74,9 @@
     "save": "Save {percent}%",
     "validUntil": "Valid until {date}",
     "back": "Back to deals",
-    "worth": "Worth {price} if bought separately"
+    "worth": "Worth {price} if bought separately",
+    "addToCart": "Add deal to cart",
+    "added": "Added {name} to your cart."
   },
   "notFound": {
     "title": "We couldn't find that page",
@@ -88,5 +97,51 @@
     "submitting": "Please wait",
     "noAccount": "New here?",
     "haveAccount": "Already have an account?"
+  },
+  "cart": {
+    "title": "Your cart",
+    "empty": "Your cart is empty.",
+    "emptyHint": "Add something from the menu to get started.",
+    "browseMenu": "Browse the menu",
+    "remove": "Remove {name}",
+    "quantityOf": "Quantity of {name}",
+    "increase": "Increase quantity",
+    "decrease": "Decrease quantity",
+    "each": "{price} each",
+    "note": "Note: {note}",
+    "orderType": "How would you like your order?",
+    "delivery": "Delivery",
+    "pickup": "Pickup",
+    "dineIn": "Dine in",
+    "area": "Delivery area",
+    "chooseArea": "Choose your area",
+    "noAreas": "We are not taking delivery orders right now.",
+    "areaFee": "{name} (Rs. {charge})",
+    "areaFree": "{name} (free)",
+    "coupon": "Coupon code",
+    "applyCoupon": "Apply",
+    "removeCoupon": "Remove coupon",
+    "couponApplied": "{code} applied",
+    "summary": "Order summary",
+    "subtotal": "Subtotal",
+    "couponDiscount": "Coupon discount",
+    "deliveryFee": "Delivery",
+    "free": "Free",
+    "tax": "Tax",
+    "total": "Total",
+    "freeDeliveryHint": "Add {amount} more for free delivery.",
+    "calculating": "Updating prices",
+    "quoteFailed": "We could not update your prices.",
+    "retry": "Try again",
+    "closedHours": "We are open daily, 6 PM to 2 AM.",
+    "priceUpdated": "Price updated",
+    "couponReasons": {
+      "NOT_FOUND": "That coupon code is not valid.",
+      "INACTIVE": "That coupon is no longer active.",
+      "EXPIRED": "That coupon has expired.",
+      "USAGE_LIMIT": "That coupon has been fully used.",
+      "LOGIN_REQUIRED": "Log in to use this coupon.",
+      "MIN_ORDER": "Your order is too small for this coupon."
+    }
   }
 }
