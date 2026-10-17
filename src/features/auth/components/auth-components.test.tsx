@@ -186,3 +186,64 @@ describe('AuthMenu', () => {
     expect(calls.some((c) => c.url === '/api/auth/logout')).toBe(true);
   });
 });
+
+describe('staff sign-in', () => {
+  const signInAs = async (role: string, next: string) => {
+    routes['/api/auth/login'] = json({ success: true, data: { user: { role } } });
+    renderWithProviders(<LoginForm next={next} />);
+    type('Email', 'staff@example.com');
+    type('Password', 'secret123');
+    fireEvent.click(screen.getByRole('button', { name: 'Log in' }));
+    await waitFor(() => {
+      expect(router.push).toHaveBeenCalled();
+    });
+  };
+
+  it('takes store staff straight to the order board', async () => {
+    await signInAs('STORE_STAFF', '/');
+    expect(router.push).toHaveBeenCalledWith('/store/orders');
+  });
+
+  it('takes admins to the order board too', async () => {
+    await signInAs('ADMIN', '/');
+    expect(router.push).toHaveBeenCalledWith('/store/orders');
+  });
+
+  it('takes customers to the home page', async () => {
+    await signInAs('CUSTOMER', '/');
+    expect(router.push).toHaveBeenCalledWith('/');
+  });
+
+  it('goes where the staff member was heading when they were asked to log in', async () => {
+    await signInAs('STORE_STAFF', '/store/kitchen');
+    expect(router.push).toHaveBeenCalledWith('/store/kitchen');
+  });
+});
+
+describe('the header for staff', () => {
+  const signedIn = (role: string) => {
+    routes['/api/auth/me'] = json({
+      success: true,
+      data: { user: { userId: 'u', email: 'staff@example.com', role } },
+    });
+  };
+
+  it('links store staff and admins to the store panel', async () => {
+    for (const role of ['STORE_STAFF', 'ADMIN']) {
+      signedIn(role);
+      const { unmount } = renderWithProviders(<AuthMenu />);
+      expect(await screen.findByRole('link', { name: 'Store' })).toHaveAttribute(
+        'href',
+        '/store/orders',
+      );
+      unmount();
+    }
+  });
+
+  it('does not show the link to customers', async () => {
+    signedIn('CUSTOMER');
+    renderWithProviders(<AuthMenu />);
+    await screen.findByText('staff@example.com');
+    expect(screen.queryByRole('link', { name: 'Store' })).toBeNull();
+  });
+});

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/shared/components/ui/Button';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
+import { isStaffRole } from '@/lib/auth/roles';
 import { postJson } from '@/shared/utils/api';
 import { SESSION_QUERY_KEY, useSession } from '../hooks/useSession';
 
@@ -54,6 +55,14 @@ export function AuthMenu() {
 
   return (
     <div className="flex items-center gap-3">
+      {isStaffRole(user.role) ? (
+        <Link
+          href="/store/orders"
+          className="inline-flex min-h-11 items-center px-3 text-sm text-stone-300 hover:text-white"
+        >
+          {t('store')}
+        </Link>
+      ) : null}
       <span className="hidden max-w-40 truncate text-sm text-stone-300 sm:inline">
         {user.email}
       </span>

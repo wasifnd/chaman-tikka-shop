@@ -42,3 +42,12 @@ INTEGRATION_DATABASE_URL="postgresql://..." npm test
 
 They create a private, temporary schema from the real migrations and delete it afterwards, so they never
 touch your data, even on your development database. CI runs them against a throwaway Postgres container.
+
+## Store panel
+
+Staff sign in at `/auth/login` and land on `/store/orders` (the order board). `/store/kitchen` is a
+simplified screen for the kitchen: only what has to be cooked, with one big button per ticket.
+
+`npm run db:seed` creates two demo accounts for local development: `staff@bbqstore.local` (store staff)
+and `admin@bbqstore.local`. Their password is `SEED_DEMO_PASSWORD` if set, otherwise a default written in
+`prisma/seed.ts`. **Change it, or delete these accounts, before going live.**

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isRole, requiredRoles, safeNextPath } from './roles';
+import { STAFF_ROLES, isRole, isStaffRole, requiredRoles, safeNextPath } from './roles';
 
 describe('requiredRoles', () => {
   it('limits /admin to admins', () => {
@@ -43,5 +43,19 @@ describe('safeNextPath', () => {
     expect(safeNextPath('/\\evil.com')).toBe('/');
     expect(safeNextPath(null)).toBe('/');
     expect(safeNextPath(undefined, '/menu')).toBe('/menu');
+  });
+});
+
+describe('staff roles', () => {
+  it('are store staff and admins, never customers', () => {
+    expect([...STAFF_ROLES].sort()).toEqual(['ADMIN', 'STORE_STAFF', 'SUPER_ADMIN']);
+    expect(isStaffRole('STORE_STAFF')).toBe(true);
+    expect(isStaffRole('ADMIN')).toBe(true);
+    expect(isStaffRole('SUPER_ADMIN')).toBe(true);
+    expect(isStaffRole('CUSTOMER')).toBe(false);
+  });
+
+  it('match who the proxy lets into /store', () => {
+    expect(requiredRoles('/store/orders')).toEqual(STAFF_ROLES);
   });
 });

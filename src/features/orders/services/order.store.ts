@@ -1,15 +1,8 @@
-import { Prisma, type PrismaClient } from '@prisma/client';
+import type { Prisma, PrismaClient } from '@prisma/client';
 import { createQuoteLoader } from '@/features/checkout/services/quote.repository';
+import { qualifier } from '@/lib/prisma/sql';
 import type { OrderRecord, PlacedOrder } from '../types/order.types';
 import type { IdempotencyClaim, OrderStore, OrderTx } from './order.ports';
-
-const SAFE_SCHEMA = /^[a-z0-9_]+$/i;
-
-/** Table names in raw SQL, qualified with the schema so they work through connection poolers. */
-function qualifier(schema: string) {
-  if (!SAFE_SCHEMA.test(schema)) throw new Error(`Invalid schema name: ${schema}`);
-  return (table: string) => Prisma.raw(`"${schema}"."${table}"`);
-}
 
 function createTx(db: Prisma.TransactionClient, schema: string): OrderTx {
   const table = qualifier(schema);
