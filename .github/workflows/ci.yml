@@ -16,6 +16,19 @@ jobs:
   quality:
     name: Format, lint, typecheck, test, build
     runs-on: ubuntu-latest
+    # Public pages read the menu from the database at build time, so the build needs one.
+    # A throwaway Postgres container keeps CI independent of any real database.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U ci -d ci" --health-interval 5s
+          --health-timeout 3s --health-retries 10
     env:
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
       JWT_ACCESS_SECRET: ci-access-secret-ci-access-secret-ci-access
@@ -37,6 +50,8 @@ jobs:
         with:
           files: coverage/lcov.info
           fail_ci_if_error: false
+      - name: Apply migrations and seed the CI database
+        run: npm run db:setup
       - run: npm run build
 
   audit:

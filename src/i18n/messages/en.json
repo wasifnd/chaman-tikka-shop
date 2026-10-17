@@ -4,6 +4,11 @@
     "loading": "Loading",
     "somethingWrong": "Something went wrong. Please try again."
   },
+  "nav": {
+    "menu": "Menu",
+    "deals": "Deals",
+    "primary": "Main navigation"
+  },
   "header": {
     "login": "Log in",
     "signup": "Sign up",
@@ -14,6 +19,60 @@
     "tagline": "Lahore's finest BBQ.",
     "address": "441-2-D1 Township, Lahore",
     "hours": "Open daily, 6 PM to 2 AM"
+  },
+  "home": {
+    "heroTitle": "Fire-grilled BBQ, made to order",
+    "heroSubtitle": "Delivery, pickup or dine-in. Open daily, 6 PM to 2 AM.",
+    "orderNow": "Order now",
+    "viewDeals": "View deals",
+    "dealsTitle": "Deals",
+    "popularTitle": "Popular picks",
+    "categoriesTitle": "Browse the menu",
+    "seeAll": "See full menu",
+    "visitTitle": "Find us",
+    "visitServices": "Delivery, pickup and dine-in"
+  },
+  "menu": {
+    "title": "Menu",
+    "subtitle": "Everything is grilled fresh when you order.",
+    "searchLabel": "Search the menu",
+    "searchPlaceholder": "Search tikka, naan, drinks",
+    "allCategories": "All",
+    "categoryFilter": "Filter by category",
+    "noResults": "Nothing matches your search.",
+    "clearFilters": "Clear search and filters",
+    "resultsCount": "{count, plural, one {# item} other {# items}} found",
+    "popular": "Popular",
+    "soldOut": "Sold out",
+    "limited": "Limited stock",
+    "minutes": "{count} min"
+  },
+  "product": {
+    "back": "Back to menu",
+    "required": "Required",
+    "optional": "Optional",
+    "none": "None",
+    "addons": "Add-ons",
+    "total": "Total",
+    "choose": "Choose: {groups}",
+    "prepTime": "Ready in about {count} min",
+    "unavailable": "This item is not available right now.",
+    "related": "More from {category}"
+  },
+  "deals": {
+    "title": "Deals",
+    "subtitle": "Bundles that cost less than ordering item by item.",
+    "empty": "No deals right now. Check back soon.",
+    "includes": "What's included",
+    "save": "Save {percent}%",
+    "validUntil": "Valid until {date}",
+    "back": "Back to deals",
+    "worth": "Worth {price} if bought separately"
+  },
+  "notFound": {
+    "title": "We couldn't find that page",
+    "body": "The page may have moved, or the item is no longer on the menu.",
+    "cta": "Browse the menu"
   },
   "auth": {
     "loginTitle": "Welcome back",
