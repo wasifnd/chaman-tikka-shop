@@ -1,0 +1,33 @@
+{
+  "common": {
+    "brand": "BBQ Store",
+    "loading": "Loading",
+    "somethingWrong": "Something went wrong. Please try again."
+  },
+  "header": {
+    "login": "Log in",
+    "signup": "Sign up",
+    "logout": "Log out",
+    "loggingOut": "Logging out"
+  },
+  "footer": {
+    "tagline": "Lahore's finest BBQ.",
+    "address": "441-2-D1 Township, Lahore",
+    "hours": "Open daily, 6 PM to 2 AM"
+  },
+  "auth": {
+    "loginTitle": "Welcome back",
+    "loginSubtitle": "Log in to track orders and reorder your favourites.",
+    "signupTitle": "Create your account",
+    "signupSubtitle": "Save your details for faster checkout.",
+    "email": "Email",
+    "password": "Password",
+    "name": "Full name",
+    "phone": "Mobile number (optional)",
+    "submitLogin": "Log in",
+    "submitSignup": "Create account",
+    "submitting": "Please wait",
+    "noAccount": "New here?",
+    "haveAccount": "Already have an account?"
+  }
+}
