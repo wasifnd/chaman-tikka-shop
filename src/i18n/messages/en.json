@@ -599,5 +599,24 @@
       "by": "by {who}",
       "byCustomer": "by the system or customer"
     }
+  },
+  "errors": {
+    "retry": "Try again",
+    "reference": "Reference: {code}. Quote this if the problem keeps happening.",
+    "site": {
+      "title": "Something went wrong",
+      "body": "We could not show this page. Please try again. If you were placing an order, check your cart before ordering again.",
+      "home": "Back to the menu"
+    },
+    "store": {
+      "title": "The panel hit a problem",
+      "body": "Orders are safe. Try again, or reload the page. If it keeps happening, tell the owner.",
+      "home": "Back to orders"
+    },
+    "admin": {
+      "title": "This screen hit a problem",
+      "body": "Nothing was lost or half-saved. Try again, or go back to the dashboard.",
+      "home": "Back to the dashboard"
+    }
   }
 }
