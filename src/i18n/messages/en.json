@@ -17,7 +17,8 @@
     "signup": "Sign up",
     "logout": "Log out",
     "loggingOut": "Logging out",
-    "store": "Store"
+    "store": "Store",
+    "account": "My account"
   },
   "footer": {
     "tagline": "Lahore's finest BBQ.",
@@ -207,7 +208,10 @@
     "cannotOrder": "Fix the items in your cart to continue.",
     "proceed": "Checkout",
     "emptyCart": "Your cart is empty.",
-    "browseMenu": "Browse the menu"
+    "browseMenu": "Browse the menu",
+    "savedAddress": "Use a saved address",
+    "newAddress": "Enter a new address",
+    "areaClosed": "(no longer delivered to)"
   },
   "store": {
     "nav": {
@@ -617,6 +621,61 @@
       "title": "This screen hit a problem",
       "body": "Nothing was lost or half-saved. Try again, or go back to the dashboard.",
       "home": "Back to the dashboard"
+    }
+  },
+  "account": {
+    "title": "My account",
+    "common": {
+      "save": "Save",
+      "saving": "Saving",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "editLabel": "Edit {name}",
+      "delete": "Delete",
+      "deleteLabel": "Delete {name}",
+      "confirmDelete": "Yes, delete",
+      "confirmLabel": "Confirm: {name}"
+    },
+    "nav": {
+      "label": "Account navigation",
+      "orders": "My orders",
+      "addresses": "My addresses"
+    },
+    "noProfile": {
+      "title": "This account has no order history",
+      "body": "Staff and admin accounts are for running the shop. To order food, sign up with a customer account.",
+      "link": "Go to the panel"
+    },
+    "orders": {
+      "title": "My orders",
+      "hint": "Every order you placed while signed in, newest first.",
+      "empty": "You have not placed an order while signed in yet.",
+      "browse": "Browse the menu",
+      "count": "{count, plural, one {# order} other {# orders}}",
+      "more": "and {count} more",
+      "track": "Track order",
+      "trackLabel": "Track order {number}",
+      "pages": "Order pages",
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {pages}"
+    },
+    "addresses": {
+      "title": "My addresses",
+      "hint": "Save the places you order to. At checkout you can pick one instead of typing it again.",
+      "add": "Add address",
+      "empty": "No saved addresses yet.",
+      "limit": "You can save up to {max} addresses. Delete one to add another.",
+      "noAreas": "We are not delivering to any area right now, so addresses cannot be added.",
+      "label": "Name for this address",
+      "labelHint": "Home, Office...",
+      "street": "Street address",
+      "line2": "Apartment or landmark (optional)",
+      "area": "Area",
+      "chooseArea": "Choose your area",
+      "makeDefault": "Use this as my default address",
+      "defaultBadge": "Default",
+      "areaUnavailable": "We no longer deliver to this area. Edit the address to choose another."
     }
   }
 }

@@ -11,7 +11,7 @@ import { useAdminApi } from '../hooks/useAdminApi';
 import { addonInputSchema, type AddonFormValues, type AddonInput } from '../schemas/catalog.schema';
 import type { AdminAddon } from '../types/admin.types';
 import { applyApiError } from '../utils/api-errors';
-import { formatAmount } from '../utils/format-amount';
+import { formatAmount } from '@/shared/utils/format-amount';
 import { AdminForm, DeleteButton } from './form-parts';
 
 function AddonForm({ initial, onDone }: { initial?: AdminAddon; onDone: () => void }) {

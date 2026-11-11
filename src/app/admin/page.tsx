@@ -2,8 +2,8 @@ import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { PageTitle } from '@/features/admin/components/PageTitle';
 import { adminOrders } from '@/features/admin/server';
-import { formatAmount } from '@/features/admin/utils/format-amount';
-import { formatKarachi } from '@/features/admin/utils/format-time';
+import { formatAmount } from '@/shared/utils/format-amount';
+import { formatKarachi } from '@/shared/utils/format-time';
 
 export const metadata = { title: 'Admin dashboard' };
 

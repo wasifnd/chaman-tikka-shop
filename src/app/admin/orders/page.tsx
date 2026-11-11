@@ -4,8 +4,8 @@ import { PageTitle } from '@/features/admin/components/PageTitle';
 import { OrderFilters } from '@/features/admin/components/OrderFilters';
 import { ordersQuerySchema } from '@/features/admin/schemas/operations.schema';
 import { adminOrders } from '@/features/admin/server';
-import { formatAmount } from '@/features/admin/utils/format-amount';
-import { formatKarachi } from '@/features/admin/utils/format-time';
+import { formatAmount } from '@/shared/utils/format-amount';
+import { formatKarachi } from '@/shared/utils/format-time';
 
 export const metadata = { title: 'Admin orders' };
 

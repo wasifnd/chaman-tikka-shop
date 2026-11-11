@@ -27,7 +27,7 @@ import {
 } from '../schemas/catalog.schema';
 import type { AdminAddon, AdminProductDetail } from '../types/admin.types';
 import { applyApiError } from '../utils/api-errors';
-import { formatAmount } from '../utils/format-amount';
+import { formatAmount } from '@/shared/utils/format-amount';
 import { AdminForm, ImageField } from './form-parts';
 
 const BLANK = (categoryId: string): ProductFormValues => ({

@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { MAX_UPLOAD_BYTES, uploadImage } from './upload';
 import { applyApiError } from './api-errors';
-import { formatAmount } from './format-amount';
-import { formatKarachi } from './format-time';
+import { formatAmount } from '@/shared/utils/format-amount';
+import { formatKarachi } from '@/shared/utils/format-time';
 
 describe('formatAmount', () => {
   it('shows whole rupees without decimals and paisa with two', () => {
