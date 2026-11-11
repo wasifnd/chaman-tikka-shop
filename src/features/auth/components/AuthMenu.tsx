@@ -63,6 +63,14 @@ export function AuthMenu() {
           {t('store')}
         </Link>
       ) : null}
+      {user.role === 'CUSTOMER' ? (
+        <Link
+          href="/account/orders"
+          className="inline-flex min-h-11 items-center px-3 text-sm text-stone-300 hover:text-white"
+        >
+          {t('account')}
+        </Link>
+      ) : null}
       <span className="hidden max-w-40 truncate text-sm text-stone-300 sm:inline">
         {user.email}
       </span>
