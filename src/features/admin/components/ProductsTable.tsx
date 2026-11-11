@@ -9,7 +9,7 @@ import { Input } from '@/shared/components/ui/Input';
 import { Select } from '@/shared/components/ui/Select';
 import { useAdminApi } from '../hooks/useAdminApi';
 import type { AdminProductRow } from '../types/admin.types';
-import { formatAmount } from '../utils/format-amount';
+import { formatAmount } from '@/shared/utils/format-amount';
 import { DeleteButton } from './form-parts';
 
 export function ProductsTable({

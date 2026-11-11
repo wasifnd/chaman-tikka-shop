@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Alert } from '@/shared/components/ui/Alert';
 import { useAdminApi } from '../hooks/useAdminApi';
 import type { AdminDeal } from '../types/admin.types';
-import { formatAmount } from '../utils/format-amount';
+import { formatAmount } from '@/shared/utils/format-amount';
 import { DeleteButton } from './form-parts';
 
 type Window = 'live' | 'scheduled' | 'ended' | 'off';

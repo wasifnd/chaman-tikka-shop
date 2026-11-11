@@ -16,7 +16,7 @@ import {
 } from '../schemas/operations.schema';
 import type { AdminCoupon } from '../types/admin.types';
 import { applyApiError } from '../utils/api-errors';
-import { formatAmount } from '../utils/format-amount';
+import { formatAmount } from '@/shared/utils/format-amount';
 import { AdminForm, DateTimeField, DeleteButton } from './form-parts';
 
 const BLANK: CouponFormValues = {

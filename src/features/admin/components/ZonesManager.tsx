@@ -11,7 +11,7 @@ import { useAdminApi } from '../hooks/useAdminApi';
 import { zoneInputSchema, type ZoneFormValues, type ZoneInput } from '../schemas/operations.schema';
 import type { AdminZone } from '../types/admin.types';
 import { applyApiError } from '../utils/api-errors';
-import { formatAmount } from '../utils/format-amount';
+import { formatAmount } from '@/shared/utils/format-amount';
 import { AdminForm, DeleteButton } from './form-parts';
 
 const BLANK: ZoneFormValues = {

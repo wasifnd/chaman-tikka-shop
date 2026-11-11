@@ -17,6 +17,7 @@ import type { ZoneOption } from '@/features/checkout/types/zone.types';
 import { Alert } from '@/shared/components/ui/Alert';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
+import { Select } from '@/shared/components/ui/Select';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Textarea } from '@/shared/components/ui/Textarea';
 import { postJson } from '@/shared/utils/api';
@@ -28,6 +29,7 @@ import {
 } from '../schemas/checkout-form.schema';
 import { classifyFailure, type CheckoutFailure } from './checkout-errors';
 import { keyFor, readTrackingToken, type KeyMemory } from './idempotency-key';
+import { useCheckoutPrefill } from './useCheckoutPrefill';
 
 export function CheckoutView({ zones }: { zones: ZoneOption[] }) {
   const t = useTranslations('checkout');
@@ -53,8 +55,11 @@ export function CheckoutView({ zones }: { zones: ZoneOption[] }) {
     register,
     handleSubmit,
     setError,
+    setValue,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<CheckoutFormValues, unknown, CheckoutFormOutput>({ resolver: zodResolver(schema) });
+  const { addresses, applyAddress } = useCheckoutPrefill(setValue, getValues, orderType);
 
   const [failure, setFailure] = useState<CheckoutFailure | null>(null);
   const [redirecting, setRedirecting] = useState(false);
@@ -161,6 +166,24 @@ export function CheckoutView({ zones }: { zones: ZoneOption[] }) {
             <legend className="mb-1 text-lg font-semibold">{t('address')}</legend>
             {zoneName ? (
               <p className="text-sm text-stone-400">{t('deliveringTo', { area: zoneName })}</p>
+            ) : null}
+            {addresses.length > 0 ? (
+              <Select
+                label={t('savedAddress')}
+                defaultValue=""
+                onChange={(event) => {
+                  const chosen = addresses.find((address) => address.id === event.target.value);
+                  if (chosen) applyAddress(chosen);
+                }}
+              >
+                <option value="">{t('newAddress')}</option>
+                {addresses.map((address) => (
+                  <option key={address.id} value={address.id} disabled={!address.zoneActive}>
+                    {`${address.label}: ${address.addressLine1}, ${address.zoneName}`}
+                    {address.zoneActive ? '' : ` ${t('areaClosed')}`}
+                  </option>
+                ))}
+              </Select>
             ) : null}
             <Input
               label={t('addressLine1')}

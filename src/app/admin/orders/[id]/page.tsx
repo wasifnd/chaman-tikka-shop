@@ -4,8 +4,8 @@ import { notFound } from 'next/navigation';
 import { z } from 'zod';
 import { PageTitle } from '@/features/admin/components/PageTitle';
 import { adminOrders } from '@/features/admin/server';
-import { formatAmount } from '@/features/admin/utils/format-amount';
-import { formatKarachi } from '@/features/admin/utils/format-time';
+import { formatAmount } from '@/shared/utils/format-amount';
+import { formatKarachi } from '@/shared/utils/format-time';
 
 export const metadata = { title: 'Admin order' };
 
