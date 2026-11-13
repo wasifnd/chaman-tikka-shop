@@ -1,16 +1,32 @@
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
+import { AnalyticsView } from '@/features/admin/components/analytics/AnalyticsView';
 import { PageTitle } from '@/features/admin/components/PageTitle';
-import { adminOrders } from '@/features/admin/server';
+import { resolveRange } from '@/features/admin/logic/analytics-range';
+import { adminOrders, analytics } from '@/features/admin/server';
 import { formatAmount } from '@/shared/utils/format-amount';
 import { formatKarachi } from '@/shared/utils/format-time';
 
 export const metadata = { title: 'Admin dashboard' };
 
-export default async function AdminDashboardPage() {
-  const [t, stats] = await Promise.all([
+const first = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value);
+
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const raw = await searchParams;
+  const now = new Date();
+  const range = resolveRange(
+    { preset: first(raw['preset']), from: first(raw['from']), to: first(raw['to']) },
+    now,
+  );
+
+  const [t, stats, report] = await Promise.all([
     getTranslations('admin.dashboard'),
-    adminOrders.dashboard(new Date()),
+    adminOrders.dashboard(now),
+    analytics.report(range),
   ]);
 
   const cards = [
@@ -41,6 +57,7 @@ export default async function AdminDashboardPage() {
           </li>
         ))}
       </ul>
+      <AnalyticsView report={report} />
     </>
   );
 }

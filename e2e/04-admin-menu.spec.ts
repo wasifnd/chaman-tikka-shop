@@ -586,7 +586,8 @@ test.describe('admin: the menu', () => {
         contact: guestContact(randomPhone()),
       });
       await client.dispose();
-      expect(placed.reply.status).toBe(201);
+      // The reply text names the error code if this ever fails again.
+      expect(placed.reply.status, placed.reply.text).toBe(201);
 
       const reply = await admin.del(`/api/v1/admin/products/${id}`);
       expect(reply.status).toBe(200);
@@ -854,7 +855,8 @@ test.describe('admin: the menu', () => {
         contact: guestContact(randomPhone()),
       });
       await client.dispose();
-      expect(placed.reply.status).toBe(201);
+      // The reply text names the error code if this ever fails again.
+      expect(placed.reply.status, placed.reply.text).toBe(201);
       const reply = await admin.del(`/api/v1/admin/deals/${id}`);
       expect(reply.data).toMatchObject({ outcome: 'archived' });
       expect(await dealsPage()).not.toContain(`Deal Five ${tag}`);
