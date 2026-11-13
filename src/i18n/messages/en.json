@@ -88,18 +88,20 @@
   },
   "auth": {
     "loginTitle": "Welcome back",
-    "loginSubtitle": "Log in to track orders and reorder your favourites.",
+    "loginSubtitle": "Log in with your mobile number to track orders and reorder your favourites.",
     "signupTitle": "Create your account",
     "signupSubtitle": "Save your details for faster checkout.",
-    "email": "Email",
+    "email": "Email (optional)",
     "password": "Password",
     "name": "Full name",
-    "phone": "Mobile number (optional)",
+    "phone": "Mobile number",
     "submitLogin": "Log in",
     "submitSignup": "Create account",
     "submitting": "Please wait",
     "noAccount": "New here?",
-    "haveAccount": "Already have an account?"
+    "haveAccount": "Already have an account?",
+    "phoneHint": "This is how you log in. We check it on WhatsApp.",
+    "verifyFirst": "Verify this number on WhatsApp first"
   },
   "cart": {
     "title": "Your cart",
@@ -211,7 +213,8 @@
     "browseMenu": "Browse the menu",
     "savedAddress": "Use a saved address",
     "newAddress": "Enter a new address",
-    "areaClosed": "(no longer delivered to)"
+    "areaClosed": "(no longer delivered to)",
+    "verifyFirst": "Verify this number on WhatsApp first"
   },
   "store": {
     "nav": {
@@ -515,7 +518,7 @@
       "title": "Team",
       "intro": "Accounts for people who run the store panel and the admin panel. Switching someone off stops them signing in and ends their sessions; a screen they already have open may keep working for up to 15 minutes.",
       "add": "Add team member",
-      "email": "Email",
+      "email": "Email (optional)",
       "role": "Role",
       "roles": {
         "STORE_STAFF": "Store staff",
@@ -531,12 +534,14 @@
       "neverSignedIn": "has not signed in yet",
       "switchOff": "Switch off",
       "switchOn": "Switch on",
-      "switchOffLabel": "Switch off {email}",
-      "switchOnLabel": "Switch on {email}",
+      "switchOffLabel": "Switch off {who}",
+      "switchOnLabel": "Switch on {who}",
       "resetPassword": "Reset password",
-      "resetLabel": "Reset password for {email}",
-      "newPasswordFor": "New password for {email}",
-      "setPassword": "Set password"
+      "resetLabel": "Reset password for {who}",
+      "newPasswordFor": "New password for {who}",
+      "setPassword": "Set password",
+      "phone": "Mobile number",
+      "phoneHint": "They sign in with this number."
     },
     "orders": {
       "title": "Orders",
@@ -602,6 +607,61 @@
       "history": "What happened",
       "by": "by {who}",
       "byCustomer": "by the system or customer"
+    },
+    "analytics": {
+      "title": "Sales and analytics",
+      "showing": "Showing {from} to {to}",
+      "dayNote": "A day runs noon to noon, so late-night orders count towards the evening they belong to.",
+      "rangeLabel": "Choose dates",
+      "presets": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "7d": "Last 7 days",
+        "30d": "Last 30 days"
+      },
+      "from": "From",
+      "to": "To",
+      "show": "Show",
+      "cards": {
+        "orders": "Orders",
+        "sales": "Sales",
+        "average": "Average order",
+        "cancelled": "Cancelled",
+        "itemsSold": "Items sold",
+        "discounts": "Coupon discounts given"
+      },
+      "change": {
+        "up": "Up {percent}% on the dates before",
+        "down": "Down {percent}% on the dates before",
+        "flat": "Same as the dates before",
+        "none": "No earlier orders to compare with"
+      },
+      "cancelRate": "{percent}% of orders received",
+      "empty": "No orders in these dates.",
+      "daily": "Sales each day",
+      "day": "Day",
+      "sales": "Sales",
+      "dailyDetail": "{day}: {sales} from {orders, plural, one {# order} other {# orders}}",
+      "hours": "Orders by hour",
+      "hoursHint": "When customers order, in Karachi time, from noon to the next morning.",
+      "hour": "Hour",
+      "hourDetail": "{hour}: {orders, plural, one {# order} other {# orders}}",
+      "byType": "Orders by type",
+      "customers": "{signedIn, plural, one {# order} other {# orders}} from signed-in customers and {guests, plural, one {# order} other {# orders}} from guests.",
+      "products": "Best sellers",
+      "sold": "{count} sold",
+      "money": "Where the money went",
+      "deliveryFees": "Delivery fees collected",
+      "tax": "Tax collected",
+      "discounts": "Coupon discounts given",
+      "viewTable": "View as a table",
+      "export": "Download as a spreadsheet",
+      "exportHint": "Opens in Excel or Google Sheets. Uses the dates chosen above.",
+      "exports": {
+        "orders": "Every order",
+        "products": "Items sold",
+        "daily": "Sales by day"
+      }
     }
   },
   "errors": {
@@ -677,5 +737,20 @@
       "defaultBadge": "Default",
       "areaUnavailable": "We no longer deliver to this area. Edit the address to choose another."
     }
+  },
+  "verify": {
+    "why": "To make sure {phone} is yours, send us a code on WhatsApp. It is free and takes a few seconds.",
+    "start": "Verify number on WhatsApp",
+    "sendCode": "Send this code to us on WhatsApp from {phone}:",
+    "codeLabel": "Your code",
+    "openWhatsapp": "Open WhatsApp and send",
+    "orSend": "Or send the code yourself to {number}.",
+    "waiting": "Waiting for your message. This page updates by itself.",
+    "verified": "{phone} is verified",
+    "expired": "The code has expired.",
+    "tryAgain": "Get a new code",
+    "failed": "Could not start the check. Please try again.",
+    "devNotice": "Test mode: WhatsApp is not set up on this computer, so press the button instead of sending the message.",
+    "devConfirm": "Pretend I sent it"
   }
 }

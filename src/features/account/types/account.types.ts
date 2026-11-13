@@ -34,5 +34,7 @@ export interface OrderHistoryPage {
 export interface CustomerProfile {
   name: string;
   phone: string | null;
-  email: string;
+  /** Whether the account's number has been proven, so checkout needn't ask again. */
+  phoneVerified: boolean;
+  email: string | null;
 }

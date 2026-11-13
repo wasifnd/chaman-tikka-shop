@@ -58,7 +58,7 @@ export function useCheckoutPrefill(
     const { profile } = data;
     if (!getValues('name')) setValue('name', profile.name);
     if (!getValues('phone') && profile.phone) setValue('phone', profile.phone);
-    if (!getValues('email')) setValue('email', profile.email);
+    if (!getValues('email') && profile.email) setValue('email', profile.email);
   }, [data, getValues, setValue]);
 
   useEffect(() => {
@@ -71,5 +71,8 @@ export function useCheckoutPrefill(
     useCartStore.getState().setZone(preferred.zoneId);
   }, [data, orderType, getValues, setValue]);
 
-  return { addresses, applyAddress };
+  // The account's own number, when it's proven: checkout needn't ask to verify it again.
+  const verifiedPhone = data?.profile.phoneVerified ? data.profile.phone : null;
+
+  return { addresses, applyAddress, verifiedPhone };
 }

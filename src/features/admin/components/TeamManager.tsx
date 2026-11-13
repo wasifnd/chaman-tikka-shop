@@ -20,6 +20,10 @@ import type { TeamMember } from '../types/admin.types';
 import { applyApiError } from '../utils/api-errors';
 import { AdminForm } from './form-parts';
 
+/** How a team member is named on screen: their sign-in number, or email for older accounts. */
+const who = (member: Pick<TeamMember, 'id' | 'phone' | 'email'>) =>
+  member.phone ?? member.email ?? member.id;
+
 function NewMemberForm({ canMakeAdmin, onDone }: { canMakeAdmin: boolean; onDone: () => void }) {
   const t = useTranslations('admin.team');
   const api = useAdminApi();
@@ -31,7 +35,7 @@ function NewMemberForm({ canMakeAdmin, onDone }: { canMakeAdmin: boolean; onDone
     formState: { errors, isSubmitting },
   } = useForm<TeamCreateFormValues, unknown, TeamCreateInput>({
     resolver: zodResolver(teamCreateSchema),
-    defaultValues: { email: '', role: 'STORE_STAFF', password: '' },
+    defaultValues: { phone: '', email: '', role: 'STORE_STAFF', password: '' },
   });
 
   async function onSubmit(values: TeamCreateInput) {
@@ -48,6 +52,15 @@ function NewMemberForm({ canMakeAdmin, onDone }: { canMakeAdmin: boolean; onDone
       saving={isSubmitting}
       onCancel={onDone}
     >
+      <Input
+        label={t('phone')}
+        hint={t('phoneHint')}
+        type="tel"
+        inputMode="tel"
+        autoComplete="off"
+        error={errors.phone?.message}
+        {...register('phone')}
+      />
       <Input
         label={t('email')}
         type="email"
@@ -98,7 +111,7 @@ function ResetPasswordForm({ member, onDone }: { member: TeamMember; onDone: () 
     >
       {error ? <Alert>{error}</Alert> : null}
       <Input
-        label={t('newPasswordFor', { email: member.email })}
+        label={t('newPasswordFor', { who: who(member) })}
         type="password"
         autoComplete="new-password"
         value={password}
@@ -174,7 +187,7 @@ export function TeamManager({
             >
               <div>
                 <p className="font-semibold">
-                  {member.email}
+                  {who(member)}
                   {you ? <span className="text-ember ml-2 text-sm">{t('you')}</span> : null}
                 </p>
                 <p className="text-sm text-stone-400">
@@ -193,8 +206,8 @@ export function TeamManager({
                     variant="secondary"
                     aria-label={
                       member.isActive
-                        ? t('switchOffLabel', { email: member.email })
-                        : t('switchOnLabel', { email: member.email })
+                        ? t('switchOffLabel', { who: who(member) })
+                        : t('switchOnLabel', { who: who(member) })
                     }
                     onClick={() => void setActive(member, !member.isActive)}
                   >
@@ -202,7 +215,7 @@ export function TeamManager({
                   </Button>
                   <Button
                     variant="ghost"
-                    aria-label={t('resetLabel', { email: member.email })}
+                    aria-label={t('resetLabel', { who: who(member) })}
                     onClick={() => {
                       setResetting(member.id);
                     }}

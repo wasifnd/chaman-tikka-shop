@@ -2,6 +2,8 @@ import { prisma } from '@/lib/prisma/client';
 import { createNoopEmailer, createResendEmailer, type Emailer } from './services/order-email';
 import { createOrderRepository, type OrderRepository } from './services/order.repository';
 import { createOrderService, type OrderService } from './services/order.service';
+import { createOrderPhoneRepository, type OrderPhoneDeps } from './services/order-phone';
+import { verification } from '@/features/verification/server';
 import { createPrismaOrderStore } from './services/order.store';
 
 let service: OrderService | undefined;
@@ -11,6 +13,14 @@ let repository: OrderRepository | undefined;
 export function getOrderService(): OrderService {
   service ??= createOrderService(createPrismaOrderStore(prisma));
   return service;
+}
+
+/** What checkout needs to check the contact number and find the account it belongs to. */
+export function getOrderPhoneDeps(): OrderPhoneDeps {
+  return {
+    ...createOrderPhoneRepository(prisma),
+    provenAt: (id, phone) => verification.provenAt(id, phone),
+  };
 }
 
 export function getOrderRepository(): OrderRepository {

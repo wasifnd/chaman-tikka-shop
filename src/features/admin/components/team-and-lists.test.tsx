@@ -16,7 +16,9 @@ beforeEach(() => {
 
 describe('TeamManager', () => {
   const api = useApiMock();
+  // Accounts made before phone sign-in have only an email; they are named by it.
   const member = (overrides: Partial<TeamMember> & { id: string; email: string }): TeamMember => ({
+    phone: null,
     role: 'STORE_STAFF',
     isActive: true,
     lastLoginAt: null,
@@ -59,17 +61,26 @@ describe('TeamManager', () => {
     expect(screen.getByRole('button', { name: 'Switch off admin2@shop.pk' })).toBeInTheDocument();
   });
 
-  it('adds store staff', async () => {
+  it('names people by their sign-in number when they have one', () => {
+    show('ADMIN', [me, member({ id: 'p', email: 'p@shop.pk', phone: '03001112222' })]);
+    expect(screen.getByText('03001112222')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Switch off 03001112222' })).toBeInTheDocument();
+    expect(screen.queryByText('p@shop.pk')).toBeNull();
+  });
+
+  it('adds store staff by phone number, with an optional email', async () => {
     show('ADMIN');
     click('Add team member');
     // An ordinary admin is not offered the Admin role.
     expect(screen.queryByRole('option', { name: 'Admin' })).toBeNull();
-    typeInto('Email', ' New.Cook@Shop.pk ');
+    typeInto('Mobile number', '+92 300 111 2222');
+    typeInto('Email (optional)', ' New.Cook@Shop.pk ');
     typeInto('Starting password', 'kitchen-pass-1');
     click('Save');
     const call = await nextCall(api, 'POST');
     expect(call?.url).toBe('/api/v1/admin/team');
     expect(call?.body).toEqual({
+      phone: '03001112222',
       email: 'new.cook@shop.pk',
       role: 'STORE_STAFF',
       password: 'kitchen-pass-1',
@@ -85,35 +96,35 @@ describe('TeamManager', () => {
     expect(screen.getByRole('option', { name: 'Admin' })).toBeInTheDocument();
   });
 
-  it('checks the email and password before sending', async () => {
+  it('checks the number, email and password before sending', async () => {
     show('ADMIN');
     click('Add team member');
-    typeInto('Email', 'nope');
+    typeInto('Mobile number', '12345');
+    typeInto('Email (optional)', 'nope');
     typeInto('Starting password', 'short');
     click('Save');
-    expect(await screen.findByText('Enter a valid email')).toBeInTheDocument();
+    expect(await screen.findByText(/valid mobile number/)).toBeInTheDocument();
+    expect(screen.getByText('Enter a valid email')).toBeInTheDocument();
     expect(screen.getByText('Use at least 8 characters')).toBeInTheDocument();
     expect(api.calls).toHaveLength(0);
   });
 
-  it('shows a taken email under the field', async () => {
+  it('shows a taken number under the field', async () => {
     api.fail(
       'POST',
       '/api/v1/admin/team',
-      'EMAIL_TAKEN',
-      'An account with this email already exists.',
+      'PHONE_TAKEN',
+      'An account with this phone number already exists.',
       409,
-      {
-        email: 'An account with this email already exists',
-      },
+      { phone: 'An account with this phone number already exists' },
     );
     show('ADMIN');
     click('Add team member');
-    typeInto('Email', 'cook@shop.pk');
+    typeInto('Mobile number', '03001112222');
     typeInto('Starting password', 'kitchen-pass-1');
     click('Save');
     expect(
-      await screen.findByText('An account with this email already exists'),
+      await screen.findByText('An account with this phone number already exists'),
     ).toBeInTheDocument();
   });
 

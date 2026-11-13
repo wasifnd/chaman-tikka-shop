@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import type { Api } from './client';
+import { randomPhone, verifyPhone, type Api } from './client';
 
 const STATE_FILE = path.join(process.cwd(), 'e2e', '.world.json');
 
@@ -111,6 +111,7 @@ export interface OrderBody {
   instructions?: string;
   idempotencyKey: string;
   expectedTotal: number;
+  verificationId?: string;
 }
 
 /** Quotes the cart, then places it for exactly the quoted total, like the checkout page does. */
@@ -119,6 +120,8 @@ export async function placeOrder(
   input: Omit<OrderBody, 'idempotencyKey' | 'expectedTotal'> & {
     idempotencyKey?: string;
     expectedTotal?: number;
+    /** Leave the number unproven (to check the site refuses), or a signed-in customer's own. */
+    unverified?: boolean;
   },
 ) {
   const priced = await quote(api, {
@@ -127,10 +130,14 @@ export async function placeOrder(
     ...(input.zoneId ? { zoneId: input.zoneId } : {}),
     ...(input.couponCode ? { couponCode: input.couponCode } : {}),
   });
+  const { unverified, ...rest } = input;
+  const verificationId =
+    rest.verificationId ?? (unverified ? undefined : await verifyPhone(rest.contact.phone));
   const body: OrderBody = {
-    ...input,
-    idempotencyKey: input.idempotencyKey ?? newKey(),
-    expectedTotal: input.expectedTotal ?? priced.grandTotal,
+    ...rest,
+    idempotencyKey: rest.idempotencyKey ?? newKey(),
+    expectedTotal: rest.expectedTotal ?? priced.grandTotal,
+    ...(verificationId ? { verificationId } : {}),
   };
   const reply = await api.post('/api/v1/orders', body);
   const order = (reply.data as { order?: PlacedOrderReply } | null)?.order;
@@ -146,3 +153,9 @@ export interface PlacedOrderReply {
 }
 
 export const guestContact = (phone: string, name = 'E2E Guest') => ({ name, phone });
+
+/** Contact details with a freshly proven number, for scenarios that post orders directly. */
+export async function provenContact(name = 'E2E Guest') {
+  const phone = randomPhone();
+  return { contact: guestContact(phone, name), verificationId: await verifyPhone(phone) };
+}

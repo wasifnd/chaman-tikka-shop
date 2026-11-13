@@ -60,7 +60,9 @@ export interface AdminSettings {
 
 export interface TeamMember {
   id: string;
-  email: string;
+  /** The sign-in number. Missing only on accounts made before phone sign-in. */
+  phone: string | null;
+  email: string | null;
   role: 'STORE_STAFF' | 'ADMIN' | 'SUPER_ADMIN';
   isActive: boolean;
   lastLoginAt: string | null;

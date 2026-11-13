@@ -38,6 +38,8 @@ function seedCart(items: CartItem[] = [naan()], extra: Partial<CartState> = {}) 
   );
 }
 
+const VERIFICATION_ID = '0b8f2a8e-4c1d-4e5f-9a7b-1c2d3e4f5a6b';
+
 interface OrderCall {
   body: Record<string, unknown>;
 }
@@ -73,6 +75,18 @@ function serve(onOrder: OrderHandler = created, now: Date = OPEN_NOW) {
         orderCalls.push({ body });
         return Promise.resolve(onOrder());
       }
+      // The WhatsApp check, in the local test mode.
+      if (url === '/api/v1/verify') {
+        return Promise.resolve(
+          Response.json(
+            { success: true, data: { id: VERIFICATION_ID, code: '123456', mode: 'dev' } },
+            { status: 201 },
+          ),
+        );
+      }
+      if (url === `/api/v1/verify/${VERIFICATION_ID}/confirm`) {
+        return Promise.resolve(Response.json({ success: true, data: { status: 'verified' } }));
+      }
       const quote = buildQuote(body as unknown as QuoteInput, quoteData(), now);
       return Promise.resolve(Response.json({ success: true, data: { quote } }));
     }),
@@ -92,9 +106,16 @@ function renderCheckout() {
 
 const type = (label: string | RegExp, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } });
-const fillContact = () => {
+/** Proves the typed number the way the local test mode does. */
+const verifyPhone = async () => {
+  fireEvent.click(await screen.findByRole('button', { name: 'Verify number on WhatsApp' }));
+  fireEvent.click(await screen.findByRole('button', { name: 'Pretend I sent it' }));
+  await screen.findByText('03001234567 is verified');
+};
+const fillContact = async () => {
   type('Full name', 'Ali Khan');
   type('Mobile number', '0300-123 4567');
+  await verifyPhone();
 };
 const placeButton = () => screen.getByRole('button', { name: /Place order|Placing/ });
 const ready = async () => {
@@ -175,7 +196,7 @@ describe('checking the form', () => {
     renderCheckout();
     await screen.findByLabelText('Street address');
     await ready();
-    fillContact();
+    await fillContact();
     submit();
     expect(await screen.findByText('Enter your street address')).toBeInTheDocument();
     expect(orderCalls).toHaveLength(0);
@@ -186,7 +207,7 @@ describe('checking the form', () => {
     serve();
     renderCheckout();
     await ready();
-    fillContact();
+    await fillContact();
     type('Email (optional)', 'not-an-email');
     submit();
     expect(await screen.findByText('Enter a valid email')).toBeInTheDocument();
@@ -199,7 +220,7 @@ describe('placing the order', () => {
     serve();
     renderCheckout();
     await ready();
-    fillContact();
+    await fillContact();
     type('Email (optional)', 'Ali@Example.com');
     type('Notes for the kitchen (optional)', 'extra crispy');
     submit();
@@ -213,6 +234,7 @@ describe('placing the order', () => {
       orderType: 'PICKUP',
       expectedTotal: 60,
       contact: { name: 'Ali Khan', phone: '03001234567', email: 'ali@example.com' },
+      verificationId: VERIFICATION_ID,
       instructions: 'extra crispy',
       lines: [{ kind: 'product', productId: ids.naan, quantity: 2 }],
     });
@@ -231,7 +253,7 @@ describe('placing the order', () => {
     await waitFor(() => {
       expect(placeButton()).toBeEnabled();
     });
-    fillContact();
+    await fillContact();
     type('Street address', 'House 12, Street 4');
     type('Apartment or landmark (optional)', 'Near the park');
     submit();
@@ -252,7 +274,7 @@ describe('placing the order', () => {
     serve();
     renderCheckout();
     await ready();
-    fillContact();
+    await fillContact();
     submit();
     await waitFor(() => {
       expect(router.push).toHaveBeenCalled();
@@ -267,7 +289,7 @@ describe('placing the order', () => {
     serve(slowCreated);
     renderCheckout();
     await ready();
-    fillContact();
+    await fillContact();
     fireEvent.click(placeButton());
     fireEvent.click(placeButton());
     await waitFor(() => {
@@ -281,7 +303,7 @@ describe('placing the order', () => {
     serve(slowCreated);
     renderCheckout();
     await ready();
-    fillContact();
+    await fillContact();
     submit();
     expect(await screen.findByRole('button', { name: 'Placing your order' })).toBeDisabled();
     // Let the order finish, so it cannot spill into the next test.
@@ -298,7 +320,7 @@ describe('retrying safely', () => {
     serve(() => (answers.shift() ?? created)());
     renderCheckout();
     await ready();
-    fillContact();
+    await fillContact();
 
     submit();
     expect(
@@ -319,7 +341,7 @@ describe('retrying safely', () => {
     serve(() => (answers.shift() ?? created)());
     renderCheckout();
     await ready();
-    fillContact();
+    await fillContact();
     submit();
     await screen.findByText('We could not place your order. Please try again.');
 
@@ -336,7 +358,7 @@ describe('retrying safely', () => {
     serve(() => failure('INTERNAL_ERROR', 500));
     renderCheckout();
     await ready();
-    fillContact();
+    await fillContact();
     submit();
     await screen.findByText('We could not place your order. Please try again.');
     expect(useCartStore.getState().items).toHaveLength(1);
@@ -350,7 +372,7 @@ describe('when the order is refused', () => {
     serve(() => response);
     renderCheckout();
     await ready();
-    fillContact();
+    await fillContact();
     submit();
     expect(await screen.findByText(expected)).toBeInTheDocument();
     expect(router.push).not.toHaveBeenCalled();
@@ -386,7 +408,7 @@ describe('when the order is refused', () => {
     );
     renderCheckout();
     await ready();
-    fillContact();
+    await fillContact();
     submit();
     expect(await screen.findByText('Server dislikes this number')).toBeInTheDocument();
   });
@@ -396,7 +418,7 @@ describe('when the order is refused', () => {
     serve(() => failure('PRICE_CHANGED', 409, { total: '70' }));
     renderCheckout();
     await ready();
-    fillContact();
+    await fillContact();
     submit();
     await screen.findByText(/Your total is now/);
     // The quote was requested again.
@@ -417,7 +439,7 @@ describe('when the cart cannot be ordered', () => {
     expect(await screen.findByText('Fix the items in your cart to continue.')).toBeInTheDocument();
     expect(screen.getByText('We are closed right now.')).toBeInTheDocument();
     expect(placeButton()).toBeDisabled();
-    fillContact();
+    await fillContact();
     submit();
     expect(orderCalls).toHaveLength(0);
   });
@@ -430,5 +452,48 @@ describe('when the cart cannot be ordered', () => {
       'href',
       '/cart',
     );
+  });
+});
+
+describe('proving the phone number', () => {
+  it('will not place the order until the number is verified', async () => {
+    seedCart();
+    serve();
+    renderCheckout();
+    await ready();
+    type('Full name', 'Ali Khan');
+    type('Mobile number', '03001234567');
+    submit();
+    expect(await screen.findByText('Verify this number on WhatsApp first')).toBeInTheDocument();
+    expect(orderCalls).toHaveLength(0);
+  });
+
+  it('asks again when the number is changed after verifying', async () => {
+    seedCart();
+    serve();
+    renderCheckout();
+    await ready();
+    await fillContact();
+    type('Mobile number', '03451234567');
+    expect(
+      await screen.findByRole('button', { name: 'Verify number on WhatsApp' }),
+    ).toBeInTheDocument();
+    submit();
+    expect(await screen.findByText('Verify this number on WhatsApp first')).toBeInTheDocument();
+    expect(orderCalls).toHaveLength(0);
+  });
+
+  it('shows the server refusing an unproven number under the phone field', async () => {
+    seedCart();
+    serve(() =>
+      failure('PHONE_NOT_VERIFIED', 403, {
+        'contact.phone': 'Verify this number on WhatsApp first',
+      }),
+    );
+    renderCheckout();
+    await ready();
+    await fillContact();
+    submit();
+    expect(await screen.findByText('Verify this number on WhatsApp first')).toBeInTheDocument();
   });
 });

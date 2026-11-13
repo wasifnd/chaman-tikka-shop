@@ -56,6 +56,7 @@ function createTx(db: Prisma.TransactionClient, schema: string): OrderTx {
           guestName: record.contact.name,
           guestPhone: record.contact.phone,
           guestEmail: record.contact.email,
+          phoneVerifiedAt: record.phoneVerifiedAt,
           type: record.type,
           status: record.status,
           ...(record.deliveryAddress

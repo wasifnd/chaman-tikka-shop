@@ -49,6 +49,8 @@ test.describe('admin: orders', () => {
   const numbers = (page: Page) => page.rows.map((r) => r.orderNumber);
 
   test.beforeAll(async () => {
+    // Three orders (each proving its number) and a full shift of status changes take a while.
+    test.setTimeout(180_000);
     world = loadWorld();
     admin = await signedIn(ADMIN);
     staff = await signedIn(STAFF);
@@ -260,7 +262,7 @@ test.describe('admin: orders', () => {
         'COMPLETED',
       ]);
       expect(order.history[0]?.by).toBeNull(); // placed by the customer
-      for (const step of order.history.slice(1)) expect(step.by).toBe(STAFF.email);
+      for (const step of order.history.slice(1)) expect(step.by).toBe(STAFF.phone);
     });
 
     test('a rejected order keeps the reason it was rejected', async () => {
@@ -270,7 +272,7 @@ test.describe('admin: orders', () => {
       expect(last).toMatchObject({
         status: 'CANCELLED',
         note: 'Table is not available',
-        by: STAFF.email,
+        by: STAFF.phone,
       });
     });
 
@@ -295,7 +297,7 @@ test.describe('admin: orders', () => {
       expect(page.status).toBe(200);
       expect(page.text).toContain(placed.delivery.orderNumber);
       expect(page.text).toContain('Canal View');
-      expect(page.text).toContain(STAFF.email);
+      expect(page.text).toContain(STAFF.phone);
     });
 
     test('the filter form still works with a mangled address', async () => {

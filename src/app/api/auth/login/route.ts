@@ -12,7 +12,7 @@ export const POST = route(async (request: Request) => {
 
   const input = await parseBody(request, loginSchema);
   // Per-account limit stops password guessing that is spread across many IPs.
-  await enforceRateLimit(getRateLimiter('login-email', 8, 900), input.email);
+  await enforceRateLimit(getRateLimiter('login-phone', 8, 900), input.phone);
 
   const session = await getAuthService().login(input);
   setAuthCookies(await cookies(), session, getCookieConfig());

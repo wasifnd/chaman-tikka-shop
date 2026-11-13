@@ -45,6 +45,9 @@ const coupon = (overrides: Partial<CouponInput> = {}): CouponInput => ({
 });
 
 describe.skipIf(!url)('running the restaurant against Postgres', () => {
+  let phoneSeq = 0;
+  /** A fresh mobile number for each new team member. */
+  const nextPhone = () => `031${String(++phoneSeq).padStart(8, '0')}`;
   let db: TestDatabase;
   let ops: ReturnType<typeof createOperationsRepository>;
   let orders: ReturnType<typeof createAdminOrdersRepository>;
@@ -274,6 +277,7 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
 
     it('creates store staff with a hashed password they can use', async () => {
       const id = await ops.createMember(admin, {
+        phone: nextPhone(),
         email: 'cook@example.com',
         role: 'STORE_STAFF',
         password: 'kitchen-pass-1',
@@ -284,9 +288,22 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
       expect(await verifyPassword('kitchen-pass-1', user?.passwordHash ?? '')).toBe(true);
     });
 
-    it('refuses a second account with the same email', async () => {
+    it('refuses a second account with the same phone number or email', async () => {
+      await ops.createMember(admin, {
+        phone: '03109999999',
+        role: 'STORE_STAFF',
+        password: 'first-pass-12',
+      });
       await expect(
         ops.createMember(admin, {
+          phone: '03109999999',
+          role: 'STORE_STAFF',
+          password: 'another-pass-1',
+        }),
+      ).rejects.toMatchObject({ code: 'PHONE_TAKEN', status: 409 });
+      await expect(
+        ops.createMember(admin, {
+          phone: nextPhone(),
           email: 'cook@example.com',
           role: 'STORE_STAFF',
           password: 'another-pass-1',
@@ -294,11 +311,30 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
       ).rejects.toMatchObject({ code: 'EMAIL_TAKEN', status: 409 });
     });
 
+    it('signs staff in by their number, with no email needed', async () => {
+      const id = await ops.createMember(admin, {
+        phone: '03108888888',
+        role: 'STORE_STAFF',
+        password: 'kitchen-pass-2',
+      });
+      expect(await db.prisma.user.findUnique({ where: { id } })).toMatchObject({
+        phone: '03108888888',
+        email: null,
+      });
+      const team = await ops.listTeam();
+      expect(team.find((m) => m.id === id)).toMatchObject({ phone: '03108888888', email: null });
+    });
+
     it('lets only a super admin create another admin', async () => {
       await expect(
         ops.createMember(
           { id: adminId, role: 'ADMIN' },
-          { email: 'sneaky@example.com', role: 'ADMIN', password: 'sneaky-pass-1' },
+          {
+            phone: nextPhone(),
+            email: 'sneaky@example.com',
+            role: 'ADMIN',
+            password: 'sneaky-pass-1',
+          },
         ),
       ).rejects.toMatchObject({ status: 403 });
       expect(
@@ -307,13 +343,19 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
 
       const id = await ops.createMember(
         { id: superId, role: 'SUPER_ADMIN' },
-        { email: 'boss2@example.com', role: 'ADMIN', password: 'boss-pass-123' },
+        {
+          phone: nextPhone(),
+          email: 'boss2@example.com',
+          role: 'ADMIN',
+          password: 'boss-pass-123',
+        },
       );
       expect((await db.prisma.user.findUnique({ where: { id } }))?.role).toBe('ADMIN');
     });
 
     async function newStaff(email: string) {
       const id = await ops.createMember(admin, {
+        phone: nextPhone(),
         email,
         role: 'STORE_STAFF',
         password: 'initial-pass-1',
@@ -370,7 +412,12 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
       // One admin cannot touch another admin.
       const otherAdmin = await ops.createMember(
         { id: superId, role: 'SUPER_ADMIN' },
-        { email: 'peer@example.com', role: 'ADMIN', password: 'peer-pass-1234' },
+        {
+          phone: nextPhone(),
+          email: 'peer@example.com',
+          role: 'ADMIN',
+          password: 'peer-pass-1234',
+        },
       );
       await expect(
         ops.updateMember({ id: adminId, role: 'ADMIN' }, otherAdmin, { isActive: false }),

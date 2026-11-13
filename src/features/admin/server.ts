@@ -1,6 +1,7 @@
 import { revalidateTag } from 'next/cache';
 import { DEALS_TAG, MENU_TAG } from '@/features/menu/cache-tags';
 import { prisma } from '@/lib/prisma/client';
+import { createAnalyticsRepository } from './services/analytics.repository';
 import { createCategoryRepository } from './services/category.repository';
 import { createDealRepository } from './services/deal.repository';
 import { createOperationsRepository } from './services/operations.repository';
@@ -13,6 +14,7 @@ export const products = createProductRepository(prisma);
 export const deals = createDealRepository(prisma);
 export const operations = createOperationsRepository(prisma);
 export const adminOrders = createAdminOrdersRepository(prisma);
+export const analytics = createAnalyticsRepository(prisma);
 
 /**
  * Customers see the menu from a cache. After any change the owner makes, drop it so the next visit

@@ -29,6 +29,8 @@ export interface OrderRecord {
   orderNumber: string;
   customerId: string | null;
   contact: { name: string; phone: string; email: string | null };
+  /** When the contact number was proven. Only proven orders are linked to an account later. */
+  phoneVerifiedAt: Date | null;
   type: OrderType;
   status: 'RECEIVED';
   deliveryAddress: DeliveryAddressSnapshot | null;

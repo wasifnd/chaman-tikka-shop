@@ -10,8 +10,10 @@ import { buildOrderRecord } from './order-record';
 import { hashRequest } from './request-hash';
 
 export interface PlaceOrderContext {
-  /** The signed-in customer, if any. Never taken from the request body. */
+  /** The account the order belongs to, if any. Never taken from the request body. */
   customerId: string | null;
+  /** When the contact number was proven (checked by the caller); null if it wasn't. */
+  phoneVerifiedAt?: Date | null;
 }
 
 /**
@@ -97,6 +99,7 @@ export function createOrderService(store: OrderStore, now: () => Date = () => ne
           request,
           data,
           customerId: context.customerId,
+          phoneVerifiedAt: context.phoneVerifiedAt ?? null,
           orderNumber: formatOrderNumber(orderYear(at), sequence),
           now: at,
         });

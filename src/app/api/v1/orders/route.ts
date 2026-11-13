@@ -1,5 +1,11 @@
 import { after } from 'next/server';
-import { getEmailer, getOrderRepository, getOrderService } from '@/features/orders/server';
+import {
+  getEmailer,
+  getOrderPhoneDeps,
+  getOrderRepository,
+  getOrderService,
+} from '@/features/orders/server';
+import { resolveOrderOwner } from '@/features/orders/services/order-phone';
 import { notifyOrderPlaced } from '@/features/orders/services/order-notify';
 import { placeOrderSchema } from '@/features/orders/schemas/place-order.schema';
 import { getSession } from '@/lib/auth/session';
@@ -21,7 +27,16 @@ export const POST = route(async (request: Request) => {
   await enforceRateLimit(getRateLimiter('orders-phone', 3, 300), body.contact.phone);
 
   const session = await getSession();
-  const placed = await getOrderService().place(body, { customerId: session?.customerId ?? null });
+  // The contact number must be proven; it also decides which account the order belongs to.
+  const owner = await resolveOrderOwner(
+    {
+      phone: body.contact.phone,
+      verificationId: body.verificationId,
+      customerId: session?.customerId ?? null,
+    },
+    getOrderPhoneDeps(),
+  );
+  const placed = await getOrderService().place(body, owner);
 
   if (!placed.replayed) {
     // After the response is sent, so a slow email provider never delays or fails the order.

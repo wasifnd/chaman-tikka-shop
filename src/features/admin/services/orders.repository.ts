@@ -89,7 +89,7 @@ export function createAdminOrdersRepository(prisma: PrismaClient) {
               status: true,
               note: true,
               createdAt: true,
-              changedBy: { select: { email: true } },
+              changedBy: { select: { phone: true, email: true } },
             },
           },
         },
@@ -114,7 +114,7 @@ export function createAdminOrdersRepository(prisma: PrismaClient) {
         history: row.statusHistory.map((entry) => ({
           status: entry.status,
           note: entry.note,
-          by: entry.changedBy?.email ?? null,
+          by: entry.changedBy ? (entry.changedBy.phone ?? entry.changedBy.email) : null,
           at: entry.createdAt.toISOString(),
         })),
       };

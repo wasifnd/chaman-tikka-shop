@@ -76,10 +76,18 @@ export function createAccountRepository(prisma: PrismaClient) {
     async getProfile(customerId: string): Promise<CustomerProfile | null> {
       const customer = await prisma.customer.findUnique({
         where: { id: customerId },
-        select: { name: true, phone: true, user: { select: { email: true } } },
+        select: {
+          name: true,
+          user: { select: { phone: true, phoneVerifiedAt: true, email: true } },
+        },
       });
       return customer
-        ? { name: customer.name, phone: customer.phone, email: customer.user.email }
+        ? {
+            name: customer.name,
+            phone: customer.user.phone,
+            phoneVerified: customer.user.phoneVerifiedAt !== null,
+            email: customer.user.email,
+          }
         : null;
     },
 

@@ -33,7 +33,7 @@ export function LoginForm({ next }: { next: string }) {
     const result = await postJson('/api/auth/login', values);
     if (!result.ok) {
       const { fieldErrors, formError: message } = splitApiError(result.error, [
-        'email',
+        'phone',
         'password',
       ]);
       for (const { name, message: text } of fieldErrors) {
@@ -55,11 +55,12 @@ export function LoginForm({ next }: { next: string }) {
     >
       {formError ? <Alert>{formError}</Alert> : null}
       <Input
-        label={t('email')}
-        type="email"
-        autoComplete="email"
-        error={errors.email?.message}
-        {...register('email')}
+        label={t('phone')}
+        type="tel"
+        autoComplete="tel"
+        inputMode="tel"
+        error={errors.phone?.message}
+        {...register('phone')}
       />
       <Input
         label={t('password')}

@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { expect, test } from '@playwright/test';
-import { ADMIN, BASE_URL, newApi, randomEmail, signedIn, type Api } from './support/client';
+import { ADMIN, BASE_URL, newApi, signUp, signedIn, type Api } from './support/client';
 import { loadWorld, type World } from './support/world';
 
 const ID = () => randomUUID();
@@ -36,7 +36,7 @@ const ADMIN_ROUTES: [string, string, unknown?][] = [
   ['GET', '/api/v1/admin/settings'],
   ['PUT', '/api/v1/admin/settings', {}],
   ['GET', '/api/v1/admin/team'],
-  ['POST', '/api/v1/admin/team', { email: 'a@b.pk' }],
+  ['POST', '/api/v1/admin/team', { phone: '03001234567' }],
   ['PATCH', `/api/v1/admin/team/${ID()}`, { isActive: false }],
   ['GET', '/api/v1/admin/orders'],
   ['GET', `/api/v1/admin/orders/${ID()}`],
@@ -82,11 +82,7 @@ test.describe('security', () => {
 
   test('every admin endpoint turns away a customer', async () => {
     const customer = await newApi();
-    await customer.post('/api/auth/signup', {
-      name: 'Curious Customer',
-      email: randomEmail(),
-      password: 'correct-horse-9',
-    });
+    await signUp(customer, { name: 'Curious Customer', password: 'correct-horse-9' });
     for (const [method, path, body] of ADMIN_ROUTES) {
       const reply = await send(customer, method, path, body);
       expect(reply.status, `${method} ${path}`).toBe(403);

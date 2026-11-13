@@ -172,6 +172,21 @@ describe('ProductOptions', () => {
     expect(total().getByText('Rs. 1,000')).toBeInTheDocument();
   });
 
+  it('multiplies the total by the quantity chosen', () => {
+    ui(<ProductOptions product={detail} />);
+    const total = () => within(screen.getByText('Total').parentElement as HTMLElement);
+    fireEvent.click(screen.getByLabelText(/Full/));
+    fireEvent.click(screen.getByLabelText(/Raita/));
+    expect(total().getByText('Rs. 1,050')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Increase quantity' }));
+    expect(total().getByText('Rs. 2,100')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Increase quantity' }));
+    expect(total().getByText('Rs. 3,150')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Decrease quantity' }));
+    expect(total().getByText('Rs. 2,100')).toBeInTheDocument();
+  });
+
   it('lets optional groups be cleared with None', () => {
     ui(<ProductOptions product={detail} />);
     fireEvent.click(screen.getByLabelText(/Hot/));

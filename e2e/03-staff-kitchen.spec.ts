@@ -1,13 +1,5 @@
 import { expect, test } from '@playwright/test';
-import {
-  BASE_URL,
-  STAFF,
-  newApi,
-  randomEmail,
-  randomPhone,
-  signedIn,
-  type Api,
-} from './support/client';
+import { BASE_URL, STAFF, newApi, signUp, randomPhone, signedIn, type Api } from './support/client';
 import {
   dealLine,
   guestContact,
@@ -352,11 +344,7 @@ test.describe('store staff and kitchen', () => {
     test('only staff can listen', async () => {
       const visitor = await newApi();
       expect((await visitor.get('/api/v1/store/events')).status).toBe(401);
-      await visitor.post('/api/auth/signup', {
-        name: 'Plain Customer',
-        email: randomEmail(),
-        password: 'correct-horse-9',
-      });
+      await signUp(visitor, { name: 'Plain Customer', password: 'correct-horse-9' });
       expect((await visitor.get('/api/v1/store/events')).status).toBe(403);
       await visitor.dispose();
     });

@@ -3,8 +3,10 @@ import { isRole, type Role } from './roles';
 
 export interface SessionUser {
   userId: string;
-  email: string;
   role: Role;
+  /** The sign-in number. Missing only on accounts made before phone sign-in. */
+  phone?: string;
+  email?: string;
   customerId?: string;
 }
 
@@ -16,8 +18,9 @@ export async function signAccessToken(
   ttlSeconds: number,
 ): Promise<string> {
   return new SignJWT({
-    email: user.email,
     role: user.role,
+    ...(user.phone ? { phone: user.phone } : {}),
+    ...(user.email ? { email: user.email } : {}),
     ...(user.customerId ? { customerId: user.customerId } : {}),
   })
     .setProtectedHeader({ alg: 'HS256' })
@@ -34,9 +37,15 @@ export async function verifyAccessToken(
 ): Promise<SessionUser | null> {
   try {
     const { payload } = await jwtVerify(token, encode(secret), { algorithms: ['HS256'] });
-    const { sub, email, role, customerId } = payload;
-    if (!sub || typeof email !== 'string' || !isRole(role)) return null;
-    return { userId: sub, email, role, ...(typeof customerId === 'string' ? { customerId } : {}) };
+    const { sub, phone, email, role, customerId } = payload;
+    if (!sub || !isRole(role)) return null;
+    return {
+      userId: sub,
+      role,
+      ...(typeof phone === 'string' ? { phone } : {}),
+      ...(typeof email === 'string' ? { email } : {}),
+      ...(typeof customerId === 'string' ? { customerId } : {}),
+    };
   } catch {
     return null;
   }

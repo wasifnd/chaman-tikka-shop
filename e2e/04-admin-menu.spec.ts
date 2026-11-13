@@ -1,7 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import { ADMIN, newApi, randomPhone, signedIn, type Api } from './support/client';
-import { guestContact, loadWorld, placeOrder, quote, type World } from './support/world';
+import {
+  guestContact,
+  loadWorld,
+  placeOrder,
+  quote,
+  type World,
+  provenContact,
+} from './support/world';
 
 /**
  * The owner changes the menu; customers see it at once, and pricing follows. These scenarios make
@@ -305,7 +312,7 @@ test.describe('admin: the menu', () => {
       const sneaky = await visitor.post('/api/v1/orders', {
         lines: [line],
         orderType: 'PICKUP',
-        contact: guestContact(randomPhone()),
+        ...(await provenContact()),
         idempotencyKey: randomUUID(),
         expectedTotal: 250,
       });
@@ -586,7 +593,8 @@ test.describe('admin: the menu', () => {
         contact: guestContact(randomPhone()),
       });
       await client.dispose();
-      expect(placed.reply.status).toBe(201);
+      // The reply text names the error code if this ever fails again.
+      expect(placed.reply.status, placed.reply.text).toBe(201);
 
       const reply = await admin.del(`/api/v1/admin/products/${id}`);
       expect(reply.status).toBe(200);
@@ -854,7 +862,8 @@ test.describe('admin: the menu', () => {
         contact: guestContact(randomPhone()),
       });
       await client.dispose();
-      expect(placed.reply.status).toBe(201);
+      // The reply text names the error code if this ever fails again.
+      expect(placed.reply.status, placed.reply.text).toBe(201);
       const reply = await admin.del(`/api/v1/admin/deals/${id}`);
       expect(reply.data).toMatchObject({ outcome: 'archived' });
       expect(await dealsPage()).not.toContain(`Deal Five ${tag}`);

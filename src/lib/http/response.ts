@@ -57,3 +57,15 @@ export async function parseBody<S extends z.ZodType>(
   }
   return schema.parse(body);
 }
+
+/**
+ * A redirect to a page on this site. The Location is relative on purpose: behind a proxy, or under
+ * `next start`, the server may see its own address as "localhost", and an absolute URL built from
+ * that would send the browser away from the address it was using.
+ */
+export function redirectToPath(path: string): Response {
+  if (!path.startsWith('/') || path.startsWith('//') || path.startsWith('/\\')) {
+    throw new Error(`Not a path on this site: ${path}`);
+  }
+  return new Response(null, { status: 307, headers: { Location: path } });
+}

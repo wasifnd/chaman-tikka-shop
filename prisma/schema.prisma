@@ -59,15 +59,19 @@ enum StockStatus {
 }
 
 model User {
-  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email         String    @unique
-  passwordHash  String    @map("password_hash")
-  role          UserRole  @default(CUSTOMER)
-  isActive      Boolean   @default(true) @map("is_active")
-  emailVerified Boolean   @default(false) @map("email_verified")
-  lastLoginAt   DateTime? @map("last_login_at")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  // The phone number is how people sign in and how orders find their account. Stored as
+  // 03XXXXXXXXX. Nullable only for accounts made before phone sign-in; every new account has one.
+  phone           String?   @unique
+  phoneVerifiedAt DateTime? @map("phone_verified_at")
+  email           String?   @unique
+  passwordHash    String    @map("password_hash")
+  role            UserRole  @default(CUSTOMER)
+  isActive        Boolean   @default(true) @map("is_active")
+  emailVerified   Boolean   @default(false) @map("email_verified")
+  lastLoginAt     DateTime? @map("last_login_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 
   customer      Customer?
   refreshTokens RefreshToken[]
@@ -82,6 +86,9 @@ model RefreshToken {
   tokenHash String    @unique @map("token_hash")
   expiresAt DateTime  @map("expires_at")
   revokedAt DateTime? @map("revoked_at")
+  // When a renewal replaced this token. A browser that lost the renewal's answer may present it
+  // again for a few seconds; that is allowed (see auth.service refresh). Null after logout.
+  rotatedAt DateTime? @map("rotated_at")
   createdAt DateTime  @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -94,7 +101,6 @@ model Customer {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId     String   @unique @map("user_id") @db.Uuid
   name       String
-  phone      String?
   adminNotes String?  @map("admin_notes")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
@@ -320,6 +326,9 @@ model Order {
   guestName               String?       @map("guest_name")
   guestPhone              String?       @map("guest_phone")
   guestEmail              String?       @map("guest_email")
+  // When the contact phone was proven (WhatsApp code or a verified account). Only verified orders
+  // are ever linked to the account that owns the number.
+  phoneVerifiedAt         DateTime?     @map("phone_verified_at")
   type                    OrderType     @default(DELIVERY)
   status                  OrderStatus   @default(RECEIVED)
   deliveryAddressId       String?       @map("delivery_address_id") @db.Uuid
@@ -349,7 +358,22 @@ model Order {
 
   @@index([status, createdAt])
   @@index([customerId, createdAt])
+  @@index([guestPhone])
   @@map("orders")
+}
+
+/// A request to prove a phone number: the customer sends the code to our WhatsApp number from that
+/// phone, and WhatsApp tells us which number it came from.
+model PhoneVerification {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone      String
+  code       String
+  createdAt  DateTime  @default(now()) @map("created_at")
+  expiresAt  DateTime  @map("expires_at")
+  verifiedAt DateTime? @map("verified_at")
+
+  @@index([phone, code])
+  @@map("phone_verifications")
 }
 
 model OrderItem {

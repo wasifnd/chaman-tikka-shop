@@ -1,14 +1,15 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
-import { AppError } from '@/lib/errors';
-import type { AuthRepository, AuthUserRecord } from './auth.service';
+import { emailTaken, phoneTaken, type AuthRepository, type AuthUserRecord } from './auth.service';
 
 type UserWithCustomer = Prisma.UserGetPayload<{ include: { customer: { select: { id: true } } } }>;
 
 const withCustomer = { customer: { select: { id: true } } } as const;
+const TRANSACTION_TIMING = { maxWait: 10_000, timeout: 20_000 };
 
 function toRecord(user: UserWithCustomer): AuthUserRecord {
   return {
     id: user.id,
+    phone: user.phone,
     email: user.email,
     passwordHash: user.passwordHash,
     role: user.role,
@@ -19,6 +20,11 @@ function toRecord(user: UserWithCustomer): AuthUserRecord {
 
 export function createPrismaAuthRepository(prisma: PrismaClient): AuthRepository {
   return {
+    async findUserByPhone(phone) {
+      const user = await prisma.user.findUnique({ where: { phone }, include: withCustomer });
+      return user ? toRecord(user) : null;
+    },
+
     async findUserByEmail(email) {
       const user = await prisma.user.findUnique({ where: { email }, include: withCustomer });
       return user ? toRecord(user) : null;
@@ -29,23 +35,37 @@ export function createPrismaAuthRepository(prisma: PrismaClient): AuthRepository
       return user ? toRecord(user) : null;
     },
 
-    async createCustomerUser({ email, passwordHash, name, phone }) {
+    async createCustomerUser({ phone, phoneVerifiedAt, email, passwordHash, name }) {
       try {
-        // Nested create runs in one transaction: no user without a customer profile.
-        const user = await prisma.user.create({
-          data: {
-            email,
-            passwordHash,
-            role: 'CUSTOMER',
-            customer: { create: { name, ...(phone ? { phone } : {}) } },
-          },
-          include: withCustomer,
-        });
-        return toRecord(user);
+        return await prisma.$transaction(async (tx) => {
+          // Nested create: no user without a customer profile.
+          const user = await tx.user.create({
+            data: {
+              phone,
+              phoneVerifiedAt,
+              email: email ?? null,
+              passwordHash,
+              role: 'CUSTOMER',
+              customer: { create: { name } },
+            },
+            include: withCustomer,
+          });
+          // Guest orders with this number become theirs, but only ones where the number was
+          // proven when ordering: an unproven order may have been placed by anyone.
+          if (user.customer) {
+            await tx.order.updateMany({
+              where: { customerId: null, guestPhone: phone, phoneVerifiedAt: { not: null } },
+              data: { customerId: user.customer.id },
+            });
+          }
+          return toRecord(user);
+          // Same allowances as placing an order: a busy or distant database can be slow to start.
+        }, TRANSACTION_TIMING);
       } catch (error) {
         // Two signups racing past the existence check: the unique index is the real guard.
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-          throw new AppError('EMAIL_TAKEN', 'An account with this email already exists.', 409);
+          const target = JSON.stringify(error.meta ?? {});
+          throw target.includes('email') ? emailTaken() : phoneTaken();
         }
         throw error;
       }
@@ -62,7 +82,7 @@ export function createPrismaAuthRepository(prisma: PrismaClient): AuthRepository
     findRefreshToken(tokenHash) {
       return prisma.refreshToken.findUnique({
         where: { tokenHash },
-        select: { id: true, userId: true, expiresAt: true, revokedAt: true },
+        select: { id: true, userId: true, expiresAt: true, revokedAt: true, rotatedAt: true },
       });
     },
 
@@ -75,11 +95,27 @@ export function createPrismaAuthRepository(prisma: PrismaClient): AuthRepository
       return count === 1;
     },
 
-    async revokeAllRefreshTokens(userId) {
-      await prisma.refreshToken.updateMany({
-        where: { userId, revokedAt: null },
-        data: { revokedAt: new Date() },
+    async rotateRefreshToken(id, at) {
+      // Conditional update makes rotation atomic: only one concurrent caller gets count 1.
+      const { count } = await prisma.refreshToken.updateMany({
+        where: { id, revokedAt: null },
+        data: { revokedAt: at, rotatedAt: at },
       });
+      return count === 1;
+    },
+
+    async revokeAllRefreshTokens(userId) {
+      // One transaction: end every session and take away any grace period in one go.
+      await prisma.$transaction([
+        prisma.refreshToken.updateMany({
+          where: { userId, revokedAt: null },
+          data: { revokedAt: new Date() },
+        }),
+        prisma.refreshToken.updateMany({
+          where: { userId, rotatedAt: { not: null } },
+          data: { rotatedAt: null },
+        }),
+      ]);
     },
   };
 }
