@@ -59,6 +59,18 @@ describe('buildOrderFilter', () => {
     const filter = buildOrderFilter(parse({ q: 'Ali' }));
     expect(JSON.stringify(filter)).not.toContain('guestPhone');
   });
+
+  it('does not search phones on a name or order number that has digits in it', () => {
+    for (const q of ['zainab 3f1590', 'Flat 22 Ali', 'BBQ-2026-0150']) {
+      expect(JSON.stringify(buildOrderFilter(parse({ q }))), q).not.toContain('guestPhone');
+    }
+  });
+
+  it('searches phones however the number is typed', () => {
+    for (const q of ['03001234567', '+92 300 1234567', '(0300) 123-4567', '0300.123']) {
+      expect(JSON.stringify(buildOrderFilter(parse({ q }))), q).toContain('guestPhone');
+    }
+  });
 });
 
 describe('ordersQuerySchema', () => {
