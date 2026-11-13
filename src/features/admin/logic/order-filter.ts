@@ -3,6 +3,8 @@ import type { OrdersQuery } from '../schemas/operations.schema';
 import { karachiDayStart } from './karachi-time';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+/** Digits with the usual separators people type in a phone number: "+92 300-123 (4567)". */
+const PHONE_LIKE = /^[\d\s+\-().]+$/;
 
 /** Turns the search box and filters into a database filter. Pure so it can be tested directly. */
 export function buildOrderFilter(query: OrdersQuery): Prisma.OrderWhereInput {
@@ -23,12 +25,13 @@ export function buildOrderFilter(query: OrdersQuery): Prisma.OrderWhereInput {
   }
 
   if (query.q) {
-    const digits = query.q.replace(/\D/g, '');
+    // Only text that looks like a phone number is matched against phones, by its digits alone,
+    // so "0300-123" finds "03001234567" but a name with a digit in it doesn't match random phones.
+    const digits = PHONE_LIKE.test(query.q) ? query.q.replace(/\D/g, '') : '';
     and.push({
       OR: [
         { orderNumber: { contains: query.q, mode: 'insensitive' } },
         { guestName: { contains: query.q, mode: 'insensitive' } },
-        // Compare phone numbers by their digits only, so "0300-123" finds "03001234567".
         ...(digits.length >= 3 ? [{ guestPhone: { contains: digits } }] : []),
       ],
     });

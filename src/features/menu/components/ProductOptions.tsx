@@ -7,6 +7,7 @@ import { useCartHydrated } from '@/features/cart/store/useCartHydrated';
 import { useCartStore } from '@/features/cart/store/useCartStore';
 import { Button } from '@/shared/components/ui/Button';
 import { QuantityStepper } from '@/shared/components/ui/QuantityStepper';
+import { fromMinor, toMinor } from '@/lib/money';
 import { formatPrice } from '@/shared/utils/format';
 import { calculateUnitPrice, missingRequiredGroups, type Selection } from '../pricing';
 import type { ProductDetail } from '../types/menu.types';
@@ -23,6 +24,8 @@ export function ProductOptions({ product }: { product: ProductDetail }) {
   const cartReady = useCartHydrated();
 
   const total = calculateUnitPrice(product.price, product.variantGroups, product.addons, selection);
+  // What the customer will pay for this line: the price of one, times how many.
+  const lineTotal = fromMinor(toMinor(total) * quantity);
   const missing = missingRequiredGroups(product.variantGroups, selection);
   const canAdd = product.orderable && missing.length === 0 && cartReady;
 
@@ -123,7 +126,7 @@ export function ProductOptions({ product }: { product: ProductDetail }) {
       <div className="border-t border-stone-800 pt-4">
         <p className="flex items-baseline justify-between text-lg font-bold">
           <span>{t('total')}</span>
-          <span aria-live="polite">{formatPrice(total)}</span>
+          <span aria-live="polite">{formatPrice(lineTotal)}</span>
         </p>
         {missing.length > 0 && product.orderable ? (
           <p className="mt-1 text-sm text-stone-400">

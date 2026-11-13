@@ -19,6 +19,8 @@ export interface RefreshTokenRecord {
   userId: string;
   expiresAt: Date;
   revokedAt: Date | null;
+  /** Set when the token was replaced by a renewal (not by logging out or a sign-out-everywhere). */
+  rotatedAt: Date | null;
 }
 
 /** Persistence port. The Prisma implementation lives in auth.repository.ts. */
@@ -34,8 +36,11 @@ export interface AuthRepository {
   touchLastLogin(userId: string): Promise<void>;
   saveRefreshToken(input: { userId: string; tokenHash: string; expiresAt: Date }): Promise<void>;
   findRefreshToken(tokenHash: string): Promise<RefreshTokenRecord | null>;
-  /** Atomically revokes a token. Returns false if it was already revoked. */
+  /** Atomically revokes a token (logging out). Returns false if it was already revoked. */
   revokeRefreshToken(id: string): Promise<boolean>;
+  /** Atomically marks a token as replaced by a renewal at `at`. Returns false if already revoked. */
+  rotateRefreshToken(id: string, at: Date): Promise<boolean>;
+  /** Signs the user out everywhere, and takes away any grace period from replaced tokens. */
   revokeAllRefreshTokens(userId: string): Promise<void>;
 }
 
@@ -44,7 +49,11 @@ export interface AuthConfig {
   accessTtlSeconds: number;
   refreshTtlDays: number;
   bcryptCost?: number;
+  /** How long a just-replaced token may still be used (see refresh). Default 30 seconds. */
+  reuseGraceSeconds?: number;
 }
+
+const DEFAULT_REUSE_GRACE_SECONDS = 30;
 
 export interface AuthSession {
   user: SessionUser;
@@ -84,6 +93,18 @@ export function createAuthService(
     return { user, accessToken, refreshToken: refresh.token };
   }
 
+  const graceMs = (config.reuseGraceSeconds ?? DEFAULT_REUSE_GRACE_SECONDS) * 1000;
+
+  /** Replaced by a renewal within the grace period (never true after logout or a sign-out-everywhere). */
+  const justReplaced = (token: RefreshTokenRecord): boolean =>
+    token.rotatedAt !== null && now().getTime() - token.rotatedAt.getTime() <= graceMs;
+
+  async function sessionFor(userId: string): Promise<AuthSession> {
+    const record = await repo.findUserById(userId);
+    if (!record?.isActive) throw invalidRefresh();
+    return issueSession(record);
+  }
+
   return {
     async signup(input: SignupInput): Promise<AuthSession> {
       if (await repo.findUserByEmail(input.email)) {
@@ -114,26 +135,35 @@ export function createAuthService(
       return issueSession(record);
     },
 
-    /** Rotates the refresh token. Presenting an already-used token revokes the whole family. */
+    /**
+     * Rotates the refresh token. Presenting an already-used token normally means it was copied, so
+     * the whole family is revoked (everyone signed in as this user is signed out).
+     *
+     * One exception: a token replaced by a renewal in the last few seconds. Browsers lose the
+     * answer to a renewal all the time (the person moved to another page, or a slow mobile
+     * connection dropped), and then send the old token again. Treating that as theft signed real
+     * people out mid-shift, so within the grace period it simply starts another session.
+     */
     async refresh(token: string): Promise<AuthSession> {
-      const stored = await repo.findRefreshToken(hashRefreshToken(token));
+      const hash = hashRefreshToken(token);
+      const stored = await repo.findRefreshToken(hash);
       if (!stored) throw invalidRefresh();
-
-      if (stored.revokedAt) {
-        await repo.revokeAllRefreshTokens(stored.userId);
-        throw invalidRefresh();
-      }
       if (stored.expiresAt <= now()) throw invalidRefresh();
 
-      if (!(await repo.revokeRefreshToken(stored.id))) {
-        // Lost a race with another request using the same token: treat as replay.
+      if (stored.revokedAt) {
+        if (justReplaced(stored)) return sessionFor(stored.userId);
         await repo.revokeAllRefreshTokens(stored.userId);
         throw invalidRefresh();
       }
 
-      const record = await repo.findUserById(stored.userId);
-      if (!record?.isActive) throw invalidRefresh();
-      return issueSession(record);
+      if (!(await repo.rotateRefreshToken(stored.id, now()))) {
+        // Another request renewed with this same token a moment ago.
+        const latest = await repo.findRefreshToken(hash);
+        if (latest && justReplaced(latest)) return sessionFor(stored.userId);
+        await repo.revokeAllRefreshTokens(stored.userId);
+        throw invalidRefresh();
+      }
+      return sessionFor(stored.userId);
     },
 
     async logout(token: string | undefined): Promise<void> {

@@ -40,7 +40,14 @@ function createFakeRepo() {
     touchLastLogin: () => Promise.resolve(),
     saveRefreshToken: ({ userId, tokenHash, expiresAt }) => {
       const id = `t${String(++seq)}`;
-      tokens.set(tokenHash, { id, userId, expiresAt, revokedAt: null, hash: tokenHash });
+      tokens.set(tokenHash, {
+        id,
+        userId,
+        expiresAt,
+        revokedAt: null,
+        rotatedAt: null,
+        hash: tokenHash,
+      });
       return Promise.resolve();
     },
     findRefreshToken: (hash) => Promise.resolve(tokens.get(hash) ?? null),
@@ -50,8 +57,19 @@ function createFakeRepo() {
       token.revokedAt = new Date();
       return Promise.resolve(true);
     },
+    rotateRefreshToken: (id, at) => {
+      const token = [...tokens.values()].find((t) => t.id === id);
+      if (!token || token.revokedAt) return Promise.resolve(false);
+      token.revokedAt = at;
+      token.rotatedAt = at;
+      return Promise.resolve(true);
+    },
     revokeAllRefreshTokens: (userId) => {
-      for (const t of tokens.values()) if (t.userId === userId) t.revokedAt ??= new Date();
+      for (const t of tokens.values()) {
+        if (t.userId !== userId) continue;
+        t.revokedAt ??= new Date();
+        t.rotatedAt = null;
+      }
       return Promise.resolve();
     },
   };
@@ -137,10 +155,14 @@ describe('auth service', () => {
   describe('refresh', () => {
     it('rotates tokens and rejects reuse of the old one, revoking the family', async () => {
       const { repo } = createFakeRepo();
-      const auth = createAuthService(repo, config);
+      let current = new Date('2026-01-01T00:00:00Z');
+      const auth = createAuthService(repo, config, () => current);
       const first = await auth.signup(signupInput);
       const second = await auth.refresh(first.refreshToken);
       expect(second.refreshToken).not.toBe(first.refreshToken);
+
+      // Well after the grace period, the old token turning up again means it was copied.
+      current = new Date('2026-01-01T00:01:00Z');
 
       await expectAppError(auth.refresh(first.refreshToken), 'INVALID_REFRESH_TOKEN');
       // The replay revoked the whole family, so the newest token is dead too.
@@ -167,14 +189,119 @@ describe('auth service', () => {
       await expectAppError(auth.refresh(session.refreshToken), 'INVALID_REFRESH_TOKEN');
     });
 
-    it('treats a lost revoke race as a replay', async () => {
+    it('treats a lost rotation race as a replay when nobody just rotated the token', async () => {
       const { repo } = createFakeRepo();
       const auth = createAuthService(
-        { ...repo, revokeRefreshToken: () => Promise.resolve(false) },
+        { ...repo, rotateRefreshToken: () => Promise.resolve(false) },
         config,
       );
       const session = await auth.signup(signupInput);
       await expectAppError(auth.refresh(session.refreshToken), 'INVALID_REFRESH_TOKEN');
+    });
+
+    describe('a token replaced moments ago (the browser lost the answer)', () => {
+      const start = new Date('2026-01-01T00:00:00Z');
+      const later = (seconds: number) => new Date(start.getTime() + seconds * 1000);
+
+      it('still works within 30 seconds, without signing anyone out', async () => {
+        const { repo } = createFakeRepo();
+        let current = start;
+        const auth = createAuthService(repo, config, () => current);
+        const first = await auth.signup(signupInput);
+        const second = await auth.refresh(first.refreshToken);
+
+        current = later(20);
+        const again = await auth.refresh(first.refreshToken);
+        expect(again.refreshToken).not.toBe(second.refreshToken);
+        // Both newer tokens keep working: the family was not revoked.
+        await expect(auth.refresh(second.refreshToken)).resolves.toBeDefined();
+        await expect(auth.refresh(again.refreshToken)).resolves.toBeDefined();
+      });
+
+      it('signs everyone out when it turns up after 30 seconds', async () => {
+        const { repo } = createFakeRepo();
+        let current = start;
+        const auth = createAuthService(repo, config, () => current);
+        const first = await auth.signup(signupInput);
+        const second = await auth.refresh(first.refreshToken);
+
+        current = later(31);
+        await expectAppError(auth.refresh(first.refreshToken), 'INVALID_REFRESH_TOKEN');
+        await expectAppError(auth.refresh(second.refreshToken), 'INVALID_REFRESH_TOKEN');
+      });
+
+      it('lets the grace period be configured', async () => {
+        const { repo } = createFakeRepo();
+        let current = start;
+        const auth = createAuthService(repo, { ...config, reuseGraceSeconds: 5 }, () => current);
+        const first = await auth.signup(signupInput);
+        await auth.refresh(first.refreshToken);
+        current = later(6);
+        await expectAppError(auth.refresh(first.refreshToken), 'INVALID_REFRESH_TOKEN');
+      });
+
+      it('gives no grace to a token ended by logging out', async () => {
+        const { repo } = createFakeRepo();
+        const auth = createAuthService(repo, config, () => start);
+        const session = await auth.signup(signupInput);
+        await auth.logout(session.refreshToken);
+        await expectAppError(auth.refresh(session.refreshToken), 'INVALID_REFRESH_TOKEN');
+      });
+
+      it('gives no grace once the family has been signed out', async () => {
+        const { repo } = createFakeRepo();
+        let current = start;
+        const auth = createAuthService(repo, config, () => current);
+        const first = await auth.signup(signupInput);
+        const second = await auth.refresh(first.refreshToken);
+        // The second token is replaced at 80 s, so at 91 s it would still be inside its grace period.
+        current = later(80);
+        const third = await auth.refresh(second.refreshToken);
+
+        // A genuine replay of an old token signs everyone out...
+        current = later(90);
+        await expectAppError(auth.refresh(first.refreshToken), 'INVALID_REFRESH_TOKEN');
+        // ...after which even a token replaced moments ago gets no second chance.
+        current = later(91);
+        await expectAppError(auth.refresh(second.refreshToken), 'INVALID_REFRESH_TOKEN');
+        await expectAppError(auth.refresh(third.refreshToken), 'INVALID_REFRESH_TOKEN');
+      });
+
+      it('wins a race with a request that rotated the same token at the same moment', async () => {
+        const { repo, tokens } = createFakeRepo();
+        const auth = createAuthService(
+          {
+            ...repo,
+            // Another request got there first, between our read and our rotation.
+            rotateRefreshToken: (id) => {
+              const token = [...tokens.values()].find((t) => t.id === id);
+              if (token) {
+                token.revokedAt = start;
+                token.rotatedAt = start;
+              }
+              return Promise.resolve(false);
+            },
+          },
+          config,
+          () => later(1),
+        );
+        const session = await auth.signup(signupInput);
+        await expect(auth.refresh(session.refreshToken)).resolves.toMatchObject({
+          user: { email: 'ali@example.com' },
+        });
+      });
+
+      it('does not revive a switched-off account', async () => {
+        const { repo, users } = createFakeRepo();
+        let current = start;
+        const auth = createAuthService(repo, config, () => current);
+        const first = await auth.signup(signupInput);
+        await auth.refresh(first.refreshToken);
+        const [user] = [...users.values()];
+        if (user) user.isActive = false;
+        current = later(5);
+        await expectAppError(auth.refresh(first.refreshToken), 'INVALID_REFRESH_TOKEN');
+      });
     });
   });
 

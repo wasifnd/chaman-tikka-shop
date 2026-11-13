@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { decideAccess } from '@/lib/auth/access-control';
+import { decideAccess, isBackgroundFetch } from '@/lib/auth/access-control';
 import { verifyAccessToken } from '@/lib/auth/access-token';
 import { ACCESS_COOKIE } from '@/lib/auth/cookies';
 
@@ -16,6 +16,9 @@ export async function proxy(request: NextRequest) {
   const decision = decideAccess(pathname, session);
   if (decision.action === 'allow') return NextResponse.next();
   if (decision.action === 'forbidden') return NextResponse.redirect(new URL('/', request.url));
+
+  // Only a real page load renews the session (see isBackgroundFetch).
+  if (isBackgroundFetch(request.headers)) return new NextResponse(null, { status: 401 });
 
   const refresh = new URL('/api/auth/refresh', request.url);
   refresh.searchParams.set('next', pathname + search);

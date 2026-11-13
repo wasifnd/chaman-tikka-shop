@@ -186,7 +186,8 @@ test.describe('accounts', () => {
       // The real owner renews, which uses up the token.
       expect((await victim.post('/api/auth/refresh')).status).toBe(200);
 
-      // A thief replays the old token.
+      // A thief replays the old token once its 30-second grace (for lost answers) has passed.
+      await new Promise((resolve) => setTimeout(resolve, 32_000));
       const thief = await newApi();
       const replay = await thief.post(
         '/api/auth/refresh',
@@ -198,6 +199,28 @@ test.describe('accounts', () => {
       // ...which makes the owner's newer token worthless as well, forcing a fresh login.
       expect((await victim.post('/api/auth/refresh')).status).toBe(401);
       await Promise.all([victim.dispose(), thief.dispose()]);
+    });
+
+    test('a browser that lost a renewal answer is not signed out when it tries the old token again', async () => {
+      const api = await newApi();
+      await api.login(email, PASSWORD);
+      const old = await api.cookie('bbq_rt');
+
+      // The renewal happens on the server, but pretend the browser never saw the answer...
+      expect((await api.post('/api/auth/refresh')).status).toBe(200);
+      const newer = await api.cookie('bbq_rt');
+
+      // ...so its next page load sends the old token again, seconds later.
+      const retry = await newApi();
+      const again = await retry.post('/api/auth/refresh', {}, { cookie: `bbq_rt=${old ?? ''}` });
+      expect(again.status).toBe(200);
+
+      // Nobody was signed out: the newer token still works.
+      const check = await newApi();
+      expect(
+        (await check.post('/api/auth/refresh', {}, { cookie: `bbq_rt=${newer ?? ''}` })).status,
+      ).toBe(200);
+      await Promise.all([api.dispose(), retry.dispose(), check.dispose()]);
     });
 
     test("guessing one account's password is stopped after a few tries", async () => {

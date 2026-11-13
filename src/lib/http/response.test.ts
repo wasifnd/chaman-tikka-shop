@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { AppError } from '@/lib/errors';
-import { fail, ok, parseBody, route, toErrorResponse } from './response';
+import { fail, ok, parseBody, redirectToPath, route, toErrorResponse } from './response';
 
 const json = async (res: Response) => (await res.json()) as Record<string, unknown>;
 
@@ -59,5 +59,26 @@ describe('response helpers', () => {
       code: 'INVALID_JSON',
     });
     await expect(parseBody(post('{"n":"x"}'), schema)).rejects.toBeInstanceOf(z.ZodError);
+  });
+});
+
+describe('redirectToPath', () => {
+  it('sends the browser to a path on whatever address it is already using', () => {
+    const response = redirectToPath('/auth/login?next=%2Fstore%2Forders');
+    expect(response.status).toBe(307);
+    // Relative on purpose: behind a proxy the server may think it is "localhost".
+    expect(response.headers.get('location')).toBe('/auth/login?next=%2Fstore%2Forders');
+  });
+
+  it('refuses anything that is not a path on this site', () => {
+    for (const target of [
+      'https://evil.example',
+      '//evil.example',
+      '/\\evil.example',
+      'javascript:alert(1)',
+      '',
+    ]) {
+      expect(() => redirectToPath(target), target).toThrow();
+    }
   });
 });
