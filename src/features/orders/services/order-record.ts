@@ -38,6 +38,7 @@ interface BuildOrderRecordInput {
   request: PlaceOrderRequest;
   data: QuoteData;
   customerId: string | null;
+  phoneVerifiedAt?: Date | null;
   orderNumber: string;
   now: Date;
 }
@@ -51,6 +52,7 @@ export function buildOrderRecord({
   request,
   data,
   customerId,
+  phoneVerifiedAt = null,
   orderNumber,
   now,
 }: BuildOrderRecordInput): OrderRecord {
@@ -76,6 +78,7 @@ export function buildOrderRecord({
       phone: request.contact.phone,
       email: request.contact.email ?? null,
     },
+    phoneVerifiedAt,
     type: request.orderType,
     status: 'RECEIVED',
     deliveryAddress,

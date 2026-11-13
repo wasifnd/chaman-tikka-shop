@@ -1,8 +1,11 @@
 import { z } from 'zod';
 import { ORDER_STATUSES, ORDER_TYPES } from '@/features/orders/state-machine';
+import { pakistaniPhone } from '@/lib/validation/phone';
 import { money, optionalInt, optionalMoney, optionalText, requiredText, sortOrder } from './common';
 
 const email = z.string().trim().toLowerCase().pipe(z.email('Enter a valid email'));
+// An untouched optional field submits "", which means "not provided".
+const optionalEmail = z.union([z.literal('').transform(() => undefined), email]).optional();
 
 /** Same rule as signup: bcrypt only reads the first 72 bytes. */
 const password = z
@@ -106,7 +109,9 @@ export type CouponFormValues = z.input<typeof couponInputSchema>;
 export const TEAM_ROLES = ['STORE_STAFF', 'ADMIN'] as const;
 
 export const teamCreateSchema = z.object({
-  email,
+  // Team members sign in with their mobile number, like everyone else.
+  phone: pakistaniPhone,
+  email: optionalEmail,
   role: z.enum(TEAM_ROLES),
   password,
 });

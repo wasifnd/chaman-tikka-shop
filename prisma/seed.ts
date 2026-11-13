@@ -169,13 +169,14 @@ async function main() {
   // Demo staff/admin accounts for local development only.
   const demoPassword = process.env['SEED_DEMO_PASSWORD'] ?? 'ChangeMe123!';
   const passwordHash = await bcrypt.hash(demoPassword, 12);
+  // They sign in with these phone numbers; found by email so older databases get the number added.
   for (const user of [
-    { email: 'admin@bbqstore.local', role: 'ADMIN' as const },
-    { email: 'staff@bbqstore.local', role: 'STORE_STAFF' as const },
+    { phone: '03000000001', email: 'admin@bbqstore.local', role: 'ADMIN' as const },
+    { phone: '03000000002', email: 'staff@bbqstore.local', role: 'STORE_STAFF' as const },
   ]) {
     await prisma.user.upsert({
       where: { email: user.email },
-      update: {},
+      update: { phone: user.phone },
       create: { ...user, passwordHash, emailVerified: true },
     });
   }

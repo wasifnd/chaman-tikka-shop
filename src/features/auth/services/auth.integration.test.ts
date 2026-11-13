@@ -37,11 +37,15 @@ describe.skipIf(!url)('session renewal against Postgres', () => {
   const signup = () => {
     n += 1;
     current = new Date();
-    return auth.signup({
-      name: 'Renewal Test',
-      email: `renew${String(n)}@example.com`,
-      password: 'longenough1',
-    });
+    return auth.signup(
+      {
+        name: 'Renewal Test',
+        phone: `0320${String(n).padStart(7, '0')}`,
+        email: `renew${String(n)}@example.com`,
+        password: 'longenough1',
+      },
+      current,
+    );
   };
   const after = (seconds: number) => {
     current = new Date(current.getTime() + seconds * 1000);

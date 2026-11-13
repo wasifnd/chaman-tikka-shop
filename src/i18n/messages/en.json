@@ -88,18 +88,20 @@
   },
   "auth": {
     "loginTitle": "Welcome back",
-    "loginSubtitle": "Log in to track orders and reorder your favourites.",
+    "loginSubtitle": "Log in with your mobile number to track orders and reorder your favourites.",
     "signupTitle": "Create your account",
     "signupSubtitle": "Save your details for faster checkout.",
-    "email": "Email",
+    "email": "Email (optional)",
     "password": "Password",
     "name": "Full name",
-    "phone": "Mobile number (optional)",
+    "phone": "Mobile number",
     "submitLogin": "Log in",
     "submitSignup": "Create account",
     "submitting": "Please wait",
     "noAccount": "New here?",
-    "haveAccount": "Already have an account?"
+    "haveAccount": "Already have an account?",
+    "phoneHint": "This is how you log in. We check it on WhatsApp.",
+    "verifyFirst": "Verify this number on WhatsApp first"
   },
   "cart": {
     "title": "Your cart",
@@ -211,7 +213,8 @@
     "browseMenu": "Browse the menu",
     "savedAddress": "Use a saved address",
     "newAddress": "Enter a new address",
-    "areaClosed": "(no longer delivered to)"
+    "areaClosed": "(no longer delivered to)",
+    "verifyFirst": "Verify this number on WhatsApp first"
   },
   "store": {
     "nav": {
@@ -515,7 +518,7 @@
       "title": "Team",
       "intro": "Accounts for people who run the store panel and the admin panel. Switching someone off stops them signing in and ends their sessions; a screen they already have open may keep working for up to 15 minutes.",
       "add": "Add team member",
-      "email": "Email",
+      "email": "Email (optional)",
       "role": "Role",
       "roles": {
         "STORE_STAFF": "Store staff",
@@ -531,12 +534,14 @@
       "neverSignedIn": "has not signed in yet",
       "switchOff": "Switch off",
       "switchOn": "Switch on",
-      "switchOffLabel": "Switch off {email}",
-      "switchOnLabel": "Switch on {email}",
+      "switchOffLabel": "Switch off {who}",
+      "switchOnLabel": "Switch on {who}",
       "resetPassword": "Reset password",
-      "resetLabel": "Reset password for {email}",
-      "newPasswordFor": "New password for {email}",
-      "setPassword": "Set password"
+      "resetLabel": "Reset password for {who}",
+      "newPasswordFor": "New password for {who}",
+      "setPassword": "Set password",
+      "phone": "Mobile number",
+      "phoneHint": "They sign in with this number."
     },
     "orders": {
       "title": "Orders",
@@ -732,5 +737,20 @@
       "defaultBadge": "Default",
       "areaUnavailable": "We no longer deliver to this area. Edit the address to choose another."
     }
+  },
+  "verify": {
+    "why": "To make sure {phone} is yours, send us a code on WhatsApp. It is free and takes a few seconds.",
+    "start": "Verify number on WhatsApp",
+    "sendCode": "Send this code to us on WhatsApp from {phone}:",
+    "codeLabel": "Your code",
+    "openWhatsapp": "Open WhatsApp and send",
+    "orSend": "Or send the code yourself to {number}.",
+    "waiting": "Waiting for your message. This page updates by itself.",
+    "verified": "{phone} is verified",
+    "expired": "The code has expired.",
+    "tryAgain": "Get a new code",
+    "failed": "Could not start the check. Please try again.",
+    "devNotice": "Test mode: WhatsApp is not set up on this computer, so press the button instead of sending the message.",
+    "devConfirm": "Pretend I sent it"
   }
 }

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { quoteRequestSchema } from '@/features/checkout/schemas/quote.schema';
+import { verificationIdField } from '@/features/verification/schemas/verification.schema';
 import { pakistaniPhone } from '@/lib/validation/phone';
 
 const email = z.string().trim().toLowerCase().max(254).pipe(z.email('Enter a valid email'));
@@ -36,6 +37,8 @@ export const placeOrderSchema = quoteRequestSchema
       .max(500)
       .optional()
       .transform((value) => (value ? value : undefined)),
+    /** The WhatsApp check that proved the contact number (not needed for the account's own). */
+    verificationId: verificationIdField,
   })
   .superRefine((value, context) => {
     if (value.orderType === 'DELIVERY' && !value.address) {

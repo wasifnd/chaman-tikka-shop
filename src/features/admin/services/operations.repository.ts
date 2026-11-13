@@ -179,9 +179,10 @@ export function createOperationsRepository(prisma: PrismaClient) {
     async listTeam(): Promise<TeamMember[]> {
       const rows = await prisma.user.findMany({
         where: { role: { in: ['STORE_STAFF', 'ADMIN', 'SUPER_ADMIN'] } },
-        orderBy: [{ role: 'asc' }, { email: 'asc' }],
+        orderBy: [{ role: 'asc' }, { createdAt: 'asc' }],
         select: {
           id: true,
+          phone: true,
           email: true,
           role: true,
           isActive: true,
@@ -191,6 +192,7 @@ export function createOperationsRepository(prisma: PrismaClient) {
       });
       return rows.map((row) => ({
         id: row.id,
+        phone: row.phone,
         email: row.email,
         role: row.role as TeamMember['role'],
         isActive: row.isActive,
@@ -206,7 +208,8 @@ export function createOperationsRepository(prisma: PrismaClient) {
       try {
         const row = await prisma.user.create({
           data: {
-            email: input.email,
+            phone: input.phone,
+            email: input.email ?? null,
             role: input.role,
             passwordHash: await hashPassword(input.password),
             emailVerified: true,
@@ -216,9 +219,18 @@ export function createOperationsRepository(prisma: PrismaClient) {
         return row.id;
       } catch (error) {
         if (isUniqueViolation(error)) {
-          throw new AppError('EMAIL_TAKEN', 'An account with this email already exists.', 409, {
-            email: 'An account with this email already exists',
-          });
+          // Prisma names the column whose unique index refused the new account.
+          if (JSON.stringify((error as { meta?: unknown }).meta ?? {}).includes('email')) {
+            throw new AppError('EMAIL_TAKEN', 'An account with this email already exists.', 409, {
+              email: 'An account with this email already exists',
+            });
+          }
+          throw new AppError(
+            'PHONE_TAKEN',
+            'An account with this phone number already exists.',
+            409,
+            { phone: 'An account with this phone number already exists' },
+          );
         }
         throw error;
       }

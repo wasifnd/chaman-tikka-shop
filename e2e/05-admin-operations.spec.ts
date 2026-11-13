@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { expect, test } from '@playwright/test';
-import { ADMIN, STAFF, newApi, randomPhone, signedIn, type Api } from './support/client';
+import { ADMIN, STAFF, newApi, randomPhone, signedIn, type Api, signUp } from './support/client';
 import {
   ALL_DAY,
   guestContact,
@@ -9,6 +9,7 @@ import {
   placeOrder,
   quote,
   type World,
+  provenContact,
 } from './support/world';
 
 /** Karachi is always UTC+5, so "right now" there is simple to work out. */
@@ -100,7 +101,7 @@ test.describe('admin: running the restaurant', () => {
       const client = await newApi();
       const attempt = await client.post('/api/v1/orders', {
         ...cartNow(),
-        contact: guestContact(randomPhone()),
+        ...(await provenContact()),
         idempotencyKey: randomUUID(),
         expectedTotal: 300,
       });
@@ -220,7 +221,7 @@ test.describe('admin: running the restaurant', () => {
       const client = await newApi();
       const reply = await client.post('/api/v1/orders', {
         ...cartNow(),
-        contact: guestContact(randomPhone()),
+        ...(await provenContact()),
         idempotencyKey: randomUUID(),
         expectedTotal: 300,
       });
@@ -478,7 +479,7 @@ test.describe('admin: running the restaurant', () => {
           const priced = await quote(client, withCode(`RACE${tag}`));
           return client.post('/api/v1/orders', {
             ...withCode(`RACE${tag}`),
-            contact: guestContact(randomPhone()),
+            ...(await provenContact()),
             idempotencyKey: randomUUID(),
             expectedTotal: priced.grandTotal,
           });
@@ -550,11 +551,7 @@ test.describe('admin: running the restaurant', () => {
     test('a visitor, a customer and store staff are all refused', async () => {
       const staff = await signedIn(STAFF);
       const customer = await newApi();
-      await customer.post('/api/auth/signup', {
-        name: 'Just A Customer',
-        email: `c.${randomUUID().slice(0, 8)}@example.com`,
-        password: 'correct-horse-9',
-      });
+      await signUp(customer, { name: 'Just A Customer', password: 'correct-horse-9' });
       const nobody = await newApi();
 
       const attempts: [string, string, unknown][] = [

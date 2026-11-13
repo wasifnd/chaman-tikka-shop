@@ -7,7 +7,8 @@ import type { LoginInput, SignupInput } from '../schemas/auth.schema';
 
 export interface AuthUserRecord {
   id: string;
-  email: string;
+  phone: string | null;
+  email: string | null;
   passwordHash: string;
   role: Role;
   isActive: boolean;
@@ -25,13 +26,19 @@ export interface RefreshTokenRecord {
 
 /** Persistence port. The Prisma implementation lives in auth.repository.ts. */
 export interface AuthRepository {
+  findUserByPhone(phone: string): Promise<AuthUserRecord | null>;
   findUserByEmail(email: string): Promise<AuthUserRecord | null>;
   findUserById(id: string): Promise<AuthUserRecord | null>;
+  /**
+   * Creates the account, and in the same transaction gives it the earlier guest orders placed with
+   * this number, but only orders whose number was proven at the time.
+   */
   createCustomerUser(input: {
-    email: string;
+    phone: string;
+    phoneVerifiedAt: Date;
+    email?: string;
     passwordHash: string;
     name: string;
-    phone?: string;
   }): Promise<AuthUserRecord>;
   touchLastLogin(userId: string): Promise<void>;
   saveRefreshToken(input: { userId: string; tokenHash: string; expiresAt: Date }): Promise<void>;
@@ -62,7 +69,15 @@ export interface AuthSession {
 }
 
 const invalidCredentials = () =>
-  new AppError('INVALID_CREDENTIALS', 'Incorrect email or password.', 401);
+  new AppError('INVALID_CREDENTIALS', 'Incorrect phone number or password.', 401);
+export const phoneTaken = () =>
+  new AppError('PHONE_TAKEN', 'An account with this phone number already exists.', 409, {
+    phone: 'An account with this phone number already exists',
+  });
+export const emailTaken = () =>
+  new AppError('EMAIL_TAKEN', 'An account with this email already exists.', 409, {
+    email: 'An account with this email already exists',
+  });
 const invalidRefresh = () =>
   new AppError('INVALID_REFRESH_TOKEN', 'Your session has expired. Please sign in again.', 401);
 
@@ -71,15 +86,16 @@ export function createAuthService(
   config: AuthConfig,
   now: () => Date = () => new Date(),
 ) {
-  // Compared against when the email is unknown so response time doesn't reveal which emails exist.
+  // Compared against when the number is unknown so response time doesn't reveal which accounts exist.
   let dummyHash: Promise<string> | undefined;
   const getDummyHash = () => (dummyHash ??= hashPassword('not-a-real-password', config.bcryptCost));
 
   function toSessionUser(record: AuthUserRecord): SessionUser {
     return {
       userId: record.id,
-      email: record.email,
       role: record.role,
+      ...(record.phone ? { phone: record.phone } : {}),
+      ...(record.email ? { email: record.email } : {}),
       ...(record.customerId ? { customerId: record.customerId } : {}),
     };
   }
@@ -106,22 +122,23 @@ export function createAuthService(
   }
 
   return {
-    async signup(input: SignupInput): Promise<AuthSession> {
-      if (await repo.findUserByEmail(input.email)) {
-        throw new AppError('EMAIL_TAKEN', 'An account with this email already exists.', 409);
-      }
+    /** The caller has already proven the phone number, at `phoneVerifiedAt`. */
+    async signup(input: SignupInput, phoneVerifiedAt: Date): Promise<AuthSession> {
+      if (await repo.findUserByPhone(input.phone)) throw phoneTaken();
+      if (input.email && (await repo.findUserByEmail(input.email))) throw emailTaken();
       const passwordHash = await hashPassword(input.password, config.bcryptCost);
       const record = await repo.createCustomerUser({
-        email: input.email,
+        phone: input.phone,
+        phoneVerifiedAt,
         passwordHash,
         name: input.name,
-        ...(input.phone ? { phone: input.phone } : {}),
+        ...(input.email ? { email: input.email } : {}),
       });
       return issueSession(record);
     },
 
     async login(input: LoginInput): Promise<AuthSession> {
-      const record = await repo.findUserByEmail(input.email);
+      const record = await repo.findUserByPhone(input.phone);
       const passwordOk = await verifyPassword(
         input.password,
         record?.passwordHash ?? (await getDummyHash()),

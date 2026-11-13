@@ -1,12 +1,22 @@
 import { randomUUID } from 'node:crypto';
 import { expect, test } from '@playwright/test';
-import { ADMIN, STAFF, newApi, randomEmail, signedIn, type Api } from './support/client';
+import {
+  ADMIN,
+  STAFF,
+  newApi,
+  randomEmail,
+  randomPhone,
+  signUp,
+  signedIn,
+  type Api,
+} from './support/client';
 
 const PASSWORD = 'kitchen-pass-1';
 
 interface Member {
   id: string;
-  email: string;
+  phone: string | null;
+  email: string | null;
   role: string;
   isActive: boolean;
 }
@@ -24,21 +34,21 @@ test.describe('admin: the team', () => {
   const members = async () =>
     ((await admin.get('/api/v1/admin/team')).data as { members: Member[] }).members;
 
+  /** Adds a team member, who signs in with their phone number (email is optional). */
   async function hire(role: 'STORE_STAFF' | 'ADMIN' = 'STORE_STAFF') {
-    const email = randomEmail('crew');
-    const reply = await admin.post('/api/v1/admin/team', { email, role, password: PASSWORD });
-    return { email, reply, id: (reply.data as { id?: string } | null)?.id ?? '' };
+    const phone = randomPhone();
+    const reply = await admin.post('/api/v1/admin/team', { phone, role, password: PASSWORD });
+    return { phone, reply, id: (reply.data as { id?: string } | null)?.id ?? '' };
   }
 
   test('the team list shows staff and admins only, never customers', async () => {
     const customer = await newApi();
-    const email = randomEmail('shopper');
-    await customer.post('/api/auth/signup', { name: 'Just A Shopper', email, password: PASSWORD });
+    const { phone } = await signUp(customer, { name: 'Just A Shopper', password: PASSWORD });
     await customer.dispose();
 
     const list = await members();
-    expect(list.map((m) => m.email)).toEqual(expect.arrayContaining([ADMIN.email, STAFF.email]));
-    expect(list.map((m) => m.email)).not.toContain(email);
+    expect(list.map((m) => m.phone)).toEqual(expect.arrayContaining([ADMIN.phone, STAFF.phone]));
+    expect(list.map((m) => m.phone)).not.toContain(phone);
     expect(list.every((m) => ['STORE_STAFF', 'ADMIN', 'SUPER_ADMIN'].includes(m.role))).toBe(true);
     // Password hashes never leave the server.
     expect((await admin.get('/api/v1/admin/team')).text).not.toMatch(/passwordHash|\$2[aby]\$/);
@@ -46,13 +56,13 @@ test.describe('admin: the team', () => {
 
   test.describe('adding someone', () => {
     test('new store staff can sign in and work the store panel, but not the admin panel', async () => {
-      const { email, reply } = await hire();
+      const { phone, reply } = await hire();
       expect(reply.status, reply.text).toBe(201);
 
       const newcomer = await newApi();
-      const login = await newcomer.login(email, PASSWORD);
+      const login = await newcomer.login(phone, PASSWORD);
       expect(login.status).toBe(200);
-      expect(login.data).toMatchObject({ user: { email, role: 'STORE_STAFF' } });
+      expect(login.data).toMatchObject({ user: { phone, role: 'STORE_STAFF' } });
 
       expect((await newcomer.get('/api/v1/store/orders')).status).toBe(200);
       expect((await newcomer.page('/store/kitchen')).status).toBe(200);
@@ -62,9 +72,36 @@ test.describe('admin: the team', () => {
       await newcomer.dispose();
     });
 
-    test('an email can only be used once, in any capitalisation', async () => {
-      const { email } = await hire();
+    test('a phone number can only be used once, however it is typed', async () => {
+      const { phone } = await hire();
       const clash = await admin.post('/api/v1/admin/team', {
+        phone: `+92 ${phone.slice(1, 4)} ${phone.slice(4)}`,
+        role: 'STORE_STAFF',
+        password: PASSWORD,
+      });
+      expect(clash.status).toBe(409);
+      expect(clash.error?.code).toBe('PHONE_TAKEN');
+      expect(clash.error?.details?.['phone']).toBeTruthy();
+
+      const demo = await admin.post('/api/v1/admin/team', {
+        phone: STAFF.phone,
+        role: 'STORE_STAFF',
+        password: PASSWORD,
+      });
+      expect(demo.status).toBe(409);
+    });
+
+    test('an email is optional, and can only be used once in any capitalisation', async () => {
+      const email = randomEmail('crew');
+      const first = await admin.post('/api/v1/admin/team', {
+        phone: randomPhone(),
+        email,
+        role: 'STORE_STAFF',
+        password: PASSWORD,
+      });
+      expect(first.status, first.text).toBe(201);
+      const clash = await admin.post('/api/v1/admin/team', {
+        phone: randomPhone(),
         email: email.toUpperCase(),
         role: 'STORE_STAFF',
         password: PASSWORD,
@@ -72,24 +109,19 @@ test.describe('admin: the team', () => {
       expect(clash.status).toBe(409);
       expect(clash.error?.code).toBe('EMAIL_TAKEN');
       expect(clash.error?.details?.['email']).toBeTruthy();
-
-      const demo = await admin.post('/api/v1/admin/team', {
-        email: STAFF.email,
-        role: 'STORE_STAFF',
-        password: PASSWORD,
-      });
-      expect(demo.status).toBe(409);
     });
 
     test('an admin cannot make another admin, only a super admin can', async () => {
-      const { reply, email } = await hire('ADMIN');
+      const { reply, phone } = await hire('ADMIN');
       expect(reply.status).toBe(403);
-      expect((await members()).map((m) => m.email)).not.toContain(email);
+      expect((await members()).map((m) => m.phone)).not.toContain(phone);
     });
 
     test('bad details are refused with a message for the field', async () => {
-      const base = { email: randomEmail('crew'), role: 'STORE_STAFF', password: PASSWORD };
+      const base = { phone: randomPhone(), role: 'STORE_STAFF', password: PASSWORD };
       const bad: [Record<string, unknown>, string][] = [
+        [{ phone: undefined }, 'phone'],
+        [{ phone: '12345' }, 'phone'],
         [{ email: 'not-an-email' }, 'email'],
         [{ password: 'short' }, 'password'],
         [{ password: 'x'.repeat(100) }, 'password'],
@@ -107,9 +139,9 @@ test.describe('admin: the team', () => {
 
   test.describe('switching someone off and on', () => {
     test('a person who is switched off cannot sign in or renew a session', async () => {
-      const { email, id } = await hire();
+      const { phone, id } = await hire();
       const session = await newApi();
-      await session.login(email, PASSWORD);
+      await session.login(phone, PASSWORD);
       expect((await session.get('/api/v1/store/orders')).status).toBe(200);
 
       const off = await admin.patch(`/api/v1/admin/team/${id}`, { isActive: false });
@@ -120,36 +152,36 @@ test.describe('admin: the team', () => {
       expect((await session.post('/api/auth/refresh')).status).toBe(401);
       const fresh = await newApi();
       // Told plainly that the account is switched off (not "wrong password").
-      expect((await fresh.login(email, PASSWORD)).status).toBe(403);
+      expect((await fresh.login(phone, PASSWORD)).status).toBe(403);
 
       const on = await admin.patch(`/api/v1/admin/team/${id}`, { isActive: true });
       expect(on.status).toBe(200);
-      expect((await fresh.login(email, PASSWORD)).status).toBe(200);
+      expect((await fresh.login(phone, PASSWORD)).status).toBe(200);
       await Promise.all([session.dispose(), fresh.dispose()]);
     });
 
     test('resetting a password locks out the old one and ends open sessions', async () => {
-      const { email, id } = await hire();
+      const { phone, id } = await hire();
       const session = await newApi();
-      await session.login(email, PASSWORD);
+      await session.login(phone, PASSWORD);
 
       const reset = await admin.patch(`/api/v1/admin/team/${id}`, { password: 'brand-new-pass-7' });
       expect(reset.status, reset.text).toBe(200);
       expect((await session.post('/api/auth/refresh')).status).toBe(401);
 
       const fresh = await newApi();
-      expect((await fresh.login(email, PASSWORD)).status).toBe(401);
-      expect((await fresh.login(email, 'brand-new-pass-7')).status).toBe(200);
+      expect((await fresh.login(phone, PASSWORD)).status).toBe(401);
+      expect((await fresh.login(phone, 'brand-new-pass-7')).status).toBe(200);
       await Promise.all([session.dispose(), fresh.dispose()]);
     });
 
     test('a weak new password is refused and the old one keeps working', async () => {
-      const { email, id } = await hire();
+      const { phone, id } = await hire();
       expect((await admin.patch(`/api/v1/admin/team/${id}`, { password: 'short' })).status).toBe(
         422,
       );
       const fresh = await newApi();
-      expect((await fresh.login(email, PASSWORD)).status).toBe(200);
+      expect((await fresh.login(phone, PASSWORD)).status).toBe(200);
       await fresh.dispose();
     });
   });
@@ -177,11 +209,7 @@ test.describe('admin: the team', () => {
 
     test('customers are not part of the team, so they cannot be changed from here', async () => {
       const customer = await newApi();
-      const signup = await customer.post('/api/auth/signup', {
-        name: 'Not Staff',
-        email: randomEmail('shopper'),
-        password: PASSWORD,
-      });
+      const signup = await signUp(customer, { name: 'Not Staff', password: PASSWORD });
       const customerId = (signup.data as { user: { userId: string } }).user.userId;
       const reply = await admin.patch(`/api/v1/admin/team/${customerId}`, { isActive: false });
       expect(reply.status).toBe(404);
@@ -220,7 +248,7 @@ test.describe('admin: the team', () => {
       expect(
         (
           await staff.post('/api/v1/admin/team', {
-            email: randomEmail(),
+            phone: randomPhone(),
             role: 'STORE_STAFF',
             password: PASSWORD,
           })

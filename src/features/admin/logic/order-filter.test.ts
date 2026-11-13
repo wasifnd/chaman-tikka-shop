@@ -66,6 +66,12 @@ describe('buildOrderFilter', () => {
     }
   });
 
+  it('searches an international number in the stored form', () => {
+    expect(JSON.stringify(buildOrderFilter(parse({ q: '+92 300 1234567' })))).toContain(
+      '"guestPhone":{"contains":"03001234567"}',
+    );
+  });
+
   it('searches phones however the number is typed', () => {
     for (const q of ['03001234567', '+92 300 1234567', '(0300) 123-4567', '0300.123']) {
       expect(JSON.stringify(buildOrderFilter(parse({ q }))), q).toContain('guestPhone');

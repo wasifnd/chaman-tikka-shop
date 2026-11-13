@@ -137,18 +137,34 @@ describe('couponInputSchema', () => {
 });
 
 describe('team schemas', () => {
-  it('creates staff with a normalised email and a decent password', () => {
+  it('creates staff by phone, with a normalised optional email and a decent password', () => {
     expect(
       teamCreateSchema.parse({
+        phone: '+92 300 1234567',
         email: '  Rana@Example.PK ',
         role: 'STORE_STAFF',
         password: 'longenough1',
       }),
-    ).toEqual({ email: 'rana@example.pk', role: 'STORE_STAFF', password: 'longenough1' });
+    ).toEqual({
+      phone: '03001234567',
+      email: 'rana@example.pk',
+      role: 'STORE_STAFF',
+      password: 'longenough1',
+    });
+    expect(
+      teamCreateSchema.parse({
+        phone: '03001234567',
+        email: '',
+        role: 'STORE_STAFF',
+        password: 'longenough1',
+      }).email,
+    ).toBeUndefined();
   });
 
-  it('refuses short or oversized passwords, bad emails and the customer or super admin role', () => {
-    const base = { email: 'a@b.pk', role: 'STORE_STAFF', password: 'longenough1' };
+  it('refuses short or oversized passwords, bad numbers and emails, and the customer or super admin role', () => {
+    const base = { phone: '03001234567', role: 'STORE_STAFF', password: 'longenough1' };
+    expect(teamCreateSchema.safeParse({ ...base, phone: undefined }).success).toBe(false);
+    expect(teamCreateSchema.safeParse({ ...base, phone: '12345' }).success).toBe(false);
     expect(teamCreateSchema.safeParse({ ...base, password: 'short' }).success).toBe(false);
     expect(teamCreateSchema.safeParse({ ...base, password: 'x'.repeat(73) }).success).toBe(false);
     expect(teamCreateSchema.safeParse({ ...base, email: 'nope' }).success).toBe(false);

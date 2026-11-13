@@ -5,7 +5,9 @@ import {
   newApi,
   randomEmail,
   randomPhone,
+  signUp,
   signedIn,
+  verifyPhone,
   type Api,
 } from './support/client';
 import { guestContact, loadWorld, naanLine, placeOrder, type World } from './support/world';
@@ -20,31 +22,56 @@ test.describe('accounts', () => {
   });
 
   test.describe('signing up', () => {
-    test('a new customer can sign up and is signed in straight away', async () => {
+    test('a new customer signs up with a proven phone number and is signed in straight away', async () => {
       const api = await newApi();
       const email = randomEmail();
-      const reply = await api.post('/api/auth/signup', {
-        name: 'E2E Customer',
-        email,
-        password: PASSWORD,
-        phone: randomPhone(),
-      });
+      const reply = await signUp(api, { name: 'E2E Customer', email, password: PASSWORD });
       expect(reply.status).toBe(201);
-      expect(reply.data).toMatchObject({ user: { email, role: 'CUSTOMER' } });
+      expect(reply.data).toMatchObject({ user: { phone: reply.phone, email, role: 'CUSTOMER' } });
 
       const me = await api.get('/api/auth/me');
       expect(me.status).toBe(200);
-      expect(me.data).toMatchObject({ user: { email, role: 'CUSTOMER' } });
+      expect(me.data).toMatchObject({ user: { phone: reply.phone, role: 'CUSTOMER' } });
+      await api.dispose();
+    });
+
+    test('email is optional', async () => {
+      const api = await newApi();
+      const reply = await signUp(api, { name: 'No Email Person', password: PASSWORD });
+      expect(reply.status).toBe(201);
+      expect(reply.data).toMatchObject({ user: { phone: reply.phone, role: 'CUSTOMER' } });
+      expect((reply.data as { user: Record<string, unknown> }).user).not.toHaveProperty('email');
+      await api.dispose();
+    });
+
+    test('a number nobody proved cannot be used to sign up', async () => {
+      const api = await newApi();
+      const phone = randomPhone();
+      const unproven = await api.post('/api/auth/signup', {
+        name: 'Not Proven',
+        phone,
+        password: PASSWORD,
+      });
+      expect(unproven.status).toBe(403);
+      expect(unproven.error?.code).toBe('PHONE_NOT_VERIFIED');
+      expect(unproven.error?.details?.['phone']).toBeTruthy();
+
+      // Nor can a check that proved a different number.
+      const otherProof = await verifyPhone(randomPhone());
+      const mismatched = await api.post('/api/auth/signup', {
+        name: 'Not Proven',
+        phone,
+        password: PASSWORD,
+        verificationId: otherProof,
+      });
+      expect(mismatched.status).toBe(403);
+      expect((await api.get('/api/auth/me')).status).toBe(401);
       await api.dispose();
     });
 
     test('the login cookies are private to the browser and scoped sensibly', async () => {
       const api = await newApi();
-      await api.post('/api/auth/signup', {
-        name: 'Cookie Check',
-        email: randomEmail(),
-        password: PASSWORD,
-      });
+      await signUp(api, { name: 'Cookie Check', password: PASSWORD });
       const state = await api.context.storageState();
       const access = state.cookies.find((c) => c.name === 'bbq_at');
       const refresh = state.cookies.find((c) => c.name === 'bbq_rt');
@@ -56,16 +83,32 @@ test.describe('accounts', () => {
       await api.dispose();
     });
 
-    test('email is not case sensitive and cannot be registered twice', async () => {
+    test('a phone number can only have one account, however it is written', async () => {
+      const first = await newApi();
+      const created = await signUp(first, { name: 'First Person', password: PASSWORD });
+      expect(created.status).toBe(201);
+
+      const second = await newApi();
+      const international = `+92 ${created.phone.slice(1, 4)} ${created.phone.slice(4)}`;
+      const clash = await second.post('/api/auth/signup', {
+        name: 'Second Person',
+        phone: international,
+        password: PASSWORD,
+        verificationId: await verifyPhone(created.phone),
+      });
+      expect(clash.status).toBe(409);
+      expect(clash.error?.code).toBe('PHONE_TAKEN');
+      await Promise.all([first.dispose(), second.dispose()]);
+    });
+
+    test('an email, when given, can only belong to one account', async () => {
       const email = randomEmail();
       const first = await newApi();
       expect(
-        (await first.post('/api/auth/signup', { name: 'First Person', email, password: PASSWORD }))
-          .status,
+        (await signUp(first, { name: 'First Person', email, password: PASSWORD })).status,
       ).toBe(201);
-
       const second = await newApi();
-      const clash = await second.post('/api/auth/signup', {
+      const clash = await signUp(second, {
         name: 'Second Person',
         email: email.toUpperCase(),
         password: PASSWORD,
@@ -75,12 +118,18 @@ test.describe('accounts', () => {
       await Promise.all([first.dispose(), second.dispose()]);
     });
 
-    test('two people signing up with the same email at once make one account', async () => {
-      const email = randomEmail();
+    test('two people signing up with the same number at once make one account', async () => {
+      const phone = randomPhone();
+      const verificationId = await verifyPhone(phone);
       const clients = await Promise.all([newApi(), newApi(), newApi(), newApi()]);
       const replies = await Promise.all(
         clients.map((c) =>
-          c.post('/api/auth/signup', { name: 'Racing Person', email, password: PASSWORD }),
+          c.post('/api/auth/signup', {
+            name: 'Racing Person',
+            phone,
+            password: PASSWORD,
+            verificationId,
+          }),
         ),
       );
       expect(replies.filter((r) => r.status === 201)).toHaveLength(1);
@@ -90,12 +139,18 @@ test.describe('accounts', () => {
 
     test('weak or malformed details are refused with a message for the field', async () => {
       const api = await newApi();
+      const phone = randomPhone();
       const cases: [Record<string, unknown>, string][] = [
-        [{ name: 'A', email: randomEmail(), password: PASSWORD }, 'name'],
-        [{ name: 'Valid Name', email: 'not-an-email', password: PASSWORD }, 'email'],
-        [{ name: 'Valid Name', email: randomEmail(), password: 'short' }, 'password'],
-        [{ name: 'Valid Name', email: randomEmail(), password: 'x'.repeat(100) }, 'password'],
-        [{ name: 'Valid Name', email: randomEmail(), password: PASSWORD, phone: '123' }, 'phone'],
+        [{ name: 'A', phone, password: PASSWORD }, 'name'],
+        [{ name: 'Valid Name', password: PASSWORD }, 'phone'],
+        [{ name: 'Valid Name', phone: '123', password: PASSWORD }, 'phone'],
+        [{ name: 'Valid Name', phone, email: 'not-an-email', password: PASSWORD }, 'email'],
+        [{ name: 'Valid Name', phone, password: 'short' }, 'password'],
+        [{ name: 'Valid Name', phone, password: 'x'.repeat(100) }, 'password'],
+        [
+          { name: 'Valid Name', phone, password: PASSWORD, verificationId: 'nope' },
+          'verificationId',
+        ],
       ];
       for (const [body, field] of cases) {
         const reply = await api.post('/api/auth/signup', body);
@@ -107,11 +162,12 @@ test.describe('accounts', () => {
 
     test('a customer cannot sign up as staff by sending a role', async () => {
       const api = await newApi();
-      const email = randomEmail();
+      const phone = randomPhone();
       const reply = await api.post('/api/auth/signup', {
         name: 'Sneaky Person',
-        email,
+        phone,
         password: PASSWORD,
+        verificationId: await verifyPhone(phone),
         role: 'ADMIN',
         isActive: true,
       });
@@ -123,39 +179,50 @@ test.describe('accounts', () => {
   });
 
   test.describe('signing in and out', () => {
-    let email: string;
+    let phone: string;
     test.beforeAll(async () => {
-      email = randomEmail();
       const api = await newApi();
-      await api.post('/api/auth/signup', { name: 'Returning Customer', email, password: PASSWORD });
+      phone = (await signUp(api, { name: 'Returning Customer', password: PASSWORD })).phone;
       await api.dispose();
     });
 
     test('the right password signs in, the wrong one does not say which part was wrong', async () => {
       const api = await newApi();
-      const good = await api.login(email, PASSWORD);
+      const good = await api.login(phone, PASSWORD);
       expect(good.status).toBe(200);
 
       const other = await newApi();
-      const wrongPassword = await other.login(email, 'wrong-password-1');
-      const unknownEmail = await other.login(randomEmail('nobody'), PASSWORD);
+      const wrongPassword = await other.login(phone, 'wrong-password-1');
+      const unknownNumber = await other.login(randomPhone(), PASSWORD);
       expect(wrongPassword.status).toBe(401);
-      expect(unknownEmail.status).toBe(401);
-      // Same message either way, so nobody can find out which emails have accounts.
-      expect(wrongPassword.error?.message).toBe(unknownEmail.error?.message);
+      expect(unknownNumber.status).toBe(401);
+      // Same message either way, so nobody can find out which numbers have accounts.
+      expect(wrongPassword.error?.message).toBe(unknownNumber.error?.message);
       await Promise.all([api.dispose(), other.dispose()]);
     });
 
-    test('email case and surrounding spaces do not matter when signing in', async () => {
+    test('the number can be typed with spaces, dashes or +92 when signing in', async () => {
+      for (const typed of [
+        ` ${phone.slice(0, 4)}-${phone.slice(4)} `,
+        `+92 ${phone.slice(1, 4)} ${phone.slice(4)}`,
+      ]) {
+        const api = await newApi();
+        expect((await api.login(typed, PASSWORD)).status, typed).toBe(200);
+        await api.dispose();
+      }
+    });
+
+    test('an email cannot be used to sign in', async () => {
       const api = await newApi();
-      const reply = await api.login(`  ${email.toUpperCase()} `, PASSWORD);
-      expect(reply.status).toBe(200);
+      const reply = await api.login('someone@example.com', PASSWORD);
+      expect(reply.status).toBe(422);
+      expect(reply.error?.details?.['phone']).toBeTruthy();
       await api.dispose();
     });
 
     test('signing out ends the session', async () => {
       const api = await newApi();
-      await api.login(email, PASSWORD);
+      await api.login(phone, PASSWORD);
       expect((await api.get('/api/auth/me')).status).toBe(200);
       expect((await api.logout()).status).toBe(200);
       expect((await api.get('/api/auth/me')).status).toBe(401);
@@ -166,7 +233,7 @@ test.describe('accounts', () => {
 
     test('a session can be renewed, and each renewal replaces the refresh token', async () => {
       const api = await newApi();
-      await api.login(email, PASSWORD);
+      await api.login(phone, PASSWORD);
       const before = await api.cookie('bbq_rt');
       const renewed = await api.post('/api/auth/refresh');
       expect(renewed.status).toBe(200);
@@ -179,7 +246,7 @@ test.describe('accounts', () => {
 
     test('a stolen (already used) refresh token signs everyone out', async () => {
       const victim = await newApi();
-      await victim.login(email, PASSWORD);
+      await victim.login(phone, PASSWORD);
       const stolen = await victim.cookie('bbq_rt');
       expect(stolen).toBeTruthy();
 
@@ -203,7 +270,7 @@ test.describe('accounts', () => {
 
     test('a browser that lost a renewal answer is not signed out when it tries the old token again', async () => {
       const api = await newApi();
-      await api.login(email, PASSWORD);
+      await api.login(phone, PASSWORD);
       const old = await api.cookie('bbq_rt');
 
       // The renewal happens on the server, but pretend the browser never saw the answer...
@@ -224,13 +291,8 @@ test.describe('accounts', () => {
     });
 
     test("guessing one account's password is stopped after a few tries", async () => {
-      const target = randomEmail('target');
       const setup = await newApi();
-      await setup.post('/api/auth/signup', {
-        name: 'Target Person',
-        email: target,
-        password: PASSWORD,
-      });
+      const target = (await signUp(setup, { name: 'Target Person', password: PASSWORD })).phone;
       await setup.dispose();
 
       const statuses: number[] = [];
@@ -281,11 +343,7 @@ test.describe('accounts', () => {
 
     test('a customer cannot use the store or admin APIs (403) or open their pages', async () => {
       const api = await newApi();
-      await api.post('/api/auth/signup', {
-        name: 'Plain Customer',
-        email: randomEmail(),
-        password: PASSWORD,
-      });
+      await signUp(api, { name: 'Plain Customer', password: PASSWORD });
       for (const path of [...adminApi, ...storeApi]) {
         expect((await api.get(path)).status, path).toBe(403);
       }
@@ -359,19 +417,38 @@ test.describe('accounts', () => {
   test.describe('a signed-in customer ordering', () => {
     test('their order is linked to their account and still trackable by link', async () => {
       const api: Api = await newApi();
-      await api.post('/api/auth/signup', {
-        name: 'Loyal Customer',
-        email: randomEmail(),
-        password: PASSWORD,
-      });
+      const { phone } = await signUp(api, { name: 'Loyal Customer', password: PASSWORD });
+      // Their own number was proven at sign-up, so checkout needs no new check.
       const { reply, order } = await placeOrder(api, {
         lines: [naanLine(world, 2)],
         orderType: 'PICKUP',
-        contact: guestContact(randomPhone(), 'Loyal Customer'),
+        contact: guestContact(phone, 'Loyal Customer'),
+        unverified: true,
       });
       expect(reply.status).toBe(201);
       const tracked = await api.get(`/api/v1/orders/${order?.trackingToken ?? ''}`);
       expect(tracked.status).toBe(200);
+      await api.dispose();
+    });
+
+    test('a different number at checkout must be proven first', async () => {
+      const api: Api = await newApi();
+      await signUp(api, { name: 'Two Phones', password: PASSWORD });
+      const unproven = await placeOrder(api, {
+        lines: [naanLine(world, 1)],
+        orderType: 'PICKUP',
+        contact: guestContact(randomPhone(), 'Two Phones'),
+        unverified: true,
+      });
+      expect(unproven.reply.status).toBe(403);
+      expect(unproven.reply.error?.code).toBe('PHONE_NOT_VERIFIED');
+
+      const proven = await placeOrder(api, {
+        lines: [naanLine(world, 1)],
+        orderType: 'PICKUP',
+        contact: guestContact(randomPhone(), 'Two Phones'),
+      });
+      expect(proven.reply.status).toBe(201);
       await api.dispose();
     });
   });

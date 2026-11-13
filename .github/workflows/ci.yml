@@ -98,6 +98,10 @@ jobs:
       JWT_ACCESS_SECRET: ci-access-secret-ci-access-secret-ci-access
       JWT_REFRESH_SECRET: ci-refresh-secret-ci-refresh-secret-ci-refresh
       E2E_BASE_URL: http://localhost:3000
+      # Test-only WhatsApp settings: the scenarios sign their own webhook calls with this secret.
+      WHATSAPP_BUSINESS_NUMBER: '923000000000'
+      WHATSAPP_APP_SECRET: e2e-whatsapp-app-secret
+      WHATSAPP_VERIFY_TOKEN: e2e-whatsapp-verify-token
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

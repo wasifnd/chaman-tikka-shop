@@ -1,13 +1,5 @@
 import { expect, test } from '@playwright/test';
-import {
-  ADMIN,
-  STAFF,
-  newApi,
-  randomEmail,
-  randomPhone,
-  signedIn,
-  type Api,
-} from './support/client';
+import { ADMIN, STAFF, newApi, signUp, randomPhone, signedIn, type Api } from './support/client';
 import { guestContact, loadWorld, naanLine, placeOrder, type World } from './support/world';
 
 /** Today's business day in Karachi: noon to noon, named by the date it began. */
@@ -110,11 +102,7 @@ test.describe('admin: sales and analytics', () => {
       const reply = await staff.page('/admin');
       expect(reply.status).toBe(307);
       const customer = await newApi();
-      await customer.post('/api/auth/signup', {
-        name: 'Curious',
-        email: randomEmail(),
-        password: 'correct-horse-9',
-      });
+      await signUp(customer, { name: 'Curious', password: 'correct-horse-9' });
       expect((await customer.page('/admin')).status).toBe(307);
       await customer.dispose();
     });
@@ -241,11 +229,7 @@ test.describe('admin: sales and analytics', () => {
       const nobody = await newApi();
       const staff = await signedIn(STAFF);
       const customer = await newApi();
-      await customer.post('/api/auth/signup', {
-        name: 'Curious',
-        email: randomEmail(),
-        password: 'correct-horse-9',
-      });
+      await signUp(customer, { name: 'Curious', password: 'correct-horse-9' });
       for (const kind of ['orders', 'products', 'daily']) {
         const path = `/api/v1/admin/analytics/export?kind=${kind}&preset=7d`;
         expect((await nobody.get(path)).status, `visitor ${kind}`).toBe(401);

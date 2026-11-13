@@ -5,8 +5,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo, useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { CartSummary } from '@/features/cart/components/CartSummary';
 import { shouldShowDelivery } from '@/features/cart/components/delivery-visibility';
 import { useQuote } from '@/features/cart/hooks/useQuote';
@@ -14,6 +14,8 @@ import { toQuoteRequest } from '@/features/cart/store/cart.logic';
 import { useCartHydrated } from '@/features/cart/store/useCartHydrated';
 import { useCartStore } from '@/features/cart/store/useCartStore';
 import type { ZoneOption } from '@/features/checkout/types/zone.types';
+import { PhoneVerification } from '@/features/verification/components/PhoneVerification';
+import { normalizePhone } from '@/lib/validation/phone';
 import { Alert } from '@/shared/components/ui/Alert';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
@@ -31,7 +33,7 @@ import { classifyFailure, type CheckoutFailure } from './checkout-errors';
 import { keyFor, readTrackingToken, type KeyMemory } from './idempotency-key';
 import { useCheckoutPrefill } from './useCheckoutPrefill';
 
-export function CheckoutView({ zones }: { zones: ZoneOption[] }) {
+export function CheckoutView({ zones, pollMs }: { zones: ZoneOption[]; pollMs?: number }) {
   const t = useTranslations('checkout');
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -55,11 +57,29 @@ export function CheckoutView({ zones }: { zones: ZoneOption[] }) {
     register,
     handleSubmit,
     setError,
+    clearErrors,
     setValue,
     getValues,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<CheckoutFormValues, unknown, CheckoutFormOutput>({ resolver: zodResolver(schema) });
-  const { addresses, applyAddress } = useCheckoutPrefill(setValue, getValues, orderType);
+  const { addresses, applyAddress, verifiedPhone } = useCheckoutPrefill(
+    setValue,
+    getValues,
+    orderType,
+  );
+
+  // Every order's number is proven: by the signed-in account, or by a WhatsApp check here.
+  const [proof, setProof] = useState<{ phone: string; id: string } | null>(null);
+  const phone = normalizePhone(useWatch({ control, name: 'phone', defaultValue: '' }));
+  const phoneProven = phone !== null && (phone === verifiedPhone || proof?.phone === phone);
+  const onVerified = useCallback(
+    (id: string) => {
+      if (phone) setProof({ phone, id });
+      clearErrors('phone');
+    },
+    [phone, clearErrors],
+  );
 
   const [failure, setFailure] = useState<CheckoutFailure | null>(null);
   const [redirecting, setRedirecting] = useState(false);
@@ -68,6 +88,11 @@ export function CheckoutView({ zones }: { zones: ZoneOption[] }) {
   async function onSubmit(values: CheckoutFormOutput) {
     if (!current) return;
     setFailure(null);
+    const verificationId = proof?.phone === values.phone ? proof.id : undefined;
+    if (values.phone !== verifiedPhone && !verificationId) {
+      setError('phone', { message: t('verifyFirst') });
+      return;
+    }
 
     const body = {
       ...request,
@@ -77,6 +102,7 @@ export function CheckoutView({ zones }: { zones: ZoneOption[] }) {
         ? { address: { line1: values.addressLine1, line2: values.addressLine2 } }
         : {}),
       instructions: values.instructions,
+      ...(verificationId ? { verificationId } : {}),
     };
     // The same order sent twice reuses its key (so it is only placed once); a changed order gets a new one.
     keyMemory.current = keyFor(keyMemory.current, JSON.stringify(body), () => crypto.randomUUID());
@@ -151,6 +177,15 @@ export function CheckoutView({ zones }: { zones: ZoneOption[] }) {
             error={errors.phone?.message}
             {...register('phone')}
           />
+          {phone ? (
+            <PhoneVerification
+              key={phone}
+              phone={phone}
+              verified={phoneProven}
+              onVerified={onVerified}
+              {...(pollMs ? { pollMs } : {})}
+            />
+          ) : null}
           <Input
             label={t('email')}
             type="email"

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { newApi, randomPhone, type Api } from './support/client';
+import { newApi, randomPhone, type Api, verifyPhone } from './support/client';
 import {
   dealLine,
   guestContact,
@@ -10,6 +10,7 @@ import {
   placeOrder,
   quote,
   type World,
+  provenContact,
 } from './support/world';
 
 /** A visitor with no account: browsing, pricing a cart, ordering and following the order. */
@@ -366,12 +367,14 @@ test.describe('guest', () => {
       const phone = randomPhone();
       const clients = await Promise.all(Array.from({ length: 10 }, () => newApi()));
       const priced = await quote(client, { lines: [naanLine(world, 2)], orderType: 'PICKUP' });
+      const verificationId = await verifyPhone(phone);
       const replies = await Promise.all(
         clients.map((client) =>
           client.post('/api/v1/orders', {
             lines: [naanLine(world, 2)],
             orderType: 'PICKUP',
             contact: guestContact(phone),
+            verificationId,
             idempotencyKey: key,
             expectedTotal: priced.grandTotal,
           }),
@@ -471,6 +474,7 @@ test.describe('guest', () => {
           orderType: 'PICKUP',
           contact,
           expectedTotal: 30,
+          unverified: true,
         });
         expect(reply.status, JSON.stringify(contact)).toBe(422);
       }
@@ -511,7 +515,7 @@ test.describe('guest', () => {
       const reply = await client.post('/api/v1/orders', {
         lines: [],
         orderType: 'PICKUP',
-        contact: guestContact(randomPhone()),
+        ...(await provenContact()),
         idempotencyKey: newKey(),
         expectedTotal: 0,
       });

@@ -1,7 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import { ADMIN, newApi, randomPhone, signedIn, type Api } from './support/client';
-import { guestContact, loadWorld, placeOrder, quote, type World } from './support/world';
+import {
+  guestContact,
+  loadWorld,
+  placeOrder,
+  quote,
+  type World,
+  provenContact,
+} from './support/world';
 
 /**
  * The owner changes the menu; customers see it at once, and pricing follows. These scenarios make
@@ -305,7 +312,7 @@ test.describe('admin: the menu', () => {
       const sneaky = await visitor.post('/api/v1/orders', {
         lines: [line],
         orderType: 'PICKUP',
-        contact: guestContact(randomPhone()),
+        ...(await provenContact()),
         idempotencyKey: randomUUID(),
         expectedTotal: 250,
       });

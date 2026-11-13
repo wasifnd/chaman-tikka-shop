@@ -1,17 +1,24 @@
-import { randomInt, randomUUID } from 'node:crypto';
+import { createHmac, randomInt, randomUUID } from 'node:crypto';
 import { request, type APIRequestContext } from '@playwright/test';
 
 export const BASE_URL = process.env['E2E_BASE_URL'] ?? 'http://localhost:3000';
 
 /** The demo accounts created by `npm run db:seed`. Override with E2E_* when yours differ. */
 export const ADMIN = {
-  email: process.env['E2E_ADMIN_EMAIL'] ?? 'admin@bbqstore.local',
+  phone: process.env['E2E_ADMIN_PHONE'] ?? '03000000001',
   password: process.env['E2E_ADMIN_PASSWORD'] ?? 'ChangeMe123!',
 };
 export const STAFF = {
-  email: process.env['E2E_STAFF_EMAIL'] ?? 'staff@bbqstore.local',
+  phone: process.env['E2E_STAFF_PHONE'] ?? '03000000002',
   password: process.env['E2E_STAFF_PASSWORD'] ?? 'ChangeMe123!',
 };
+
+/**
+ * The WhatsApp app secret the site under test was started with (WHATSAPP_APP_SECRET), so these
+ * scenarios can deliver "customer sent us a message" calls exactly as Meta signs them.
+ */
+export const WHATSAPP_APP_SECRET =
+  process.env['E2E_WHATSAPP_APP_SECRET'] ?? 'e2e-whatsapp-app-secret';
 
 export interface Reply {
   status: number;
@@ -35,7 +42,7 @@ export interface Api {
   del(path: string, headers?: Record<string, string>): Promise<Reply>;
   /** Requests a page without following redirects, to see where it would send the visitor. */
   page(path: string): Promise<Reply>;
-  login(email: string, password: string): Promise<Reply>;
+  login(phone: string, password: string): Promise<Reply>;
   logout(): Promise<Reply>;
   /** The value of a cookie this client currently holds, or undefined. */
   cookie(name: string): Promise<string | undefined>;
@@ -117,7 +124,7 @@ export async function newApi(options: { ip?: string; autoRefresh?: boolean } = {
     put: (path, body, headers) => send('PUT', path, body ?? {}, headers),
     del: (path, headers) => send('DELETE', path, undefined, headers),
     page: (path) => send('GET', path, undefined, {}, 0),
-    login: (email, password) => api.post('/api/auth/login', { email, password }),
+    login: (phone, password) => api.post('/api/auth/login', { phone, password }),
     logout: () => api.post('/api/auth/logout'),
     async cookie(name) {
       const state = await context.storageState();
@@ -135,20 +142,110 @@ const shared = new Map<string, Promise<Api>>();
  * sign-ins per account (to stop password guessing), so signing in again for every scenario would
  * lock the demo accounts out. It renews its own login when it expires, and cannot be disposed.
  */
-export function signedIn(account: { email: string; password: string }): Promise<Api> {
-  const cached = shared.get(account.email);
+export function signedIn(account: { phone: string; password: string }): Promise<Api> {
+  const cached = shared.get(account.phone);
   if (cached) return cached;
   const created = (async () => {
     const api = await newApi({ autoRefresh: true });
-    const reply = await api.login(account.email, account.password);
+    const reply = await api.login(account.phone, account.password);
     if (reply.status !== 200) {
       await api.dispose();
-      throw new Error(`Could not sign in as ${account.email}: ${reply.status} ${reply.text}`);
+      throw new Error(`Could not sign in as ${account.phone}: ${reply.status} ${reply.text}`);
     }
     return { ...api, dispose: () => Promise.resolve() };
   })();
-  shared.set(account.email, created);
+  shared.set(account.phone, created);
   // A failed sign-in must not be remembered, or every later scenario would fail the same way.
-  created.catch(() => shared.delete(account.email));
+  created.catch(() => shared.delete(account.phone));
   return created;
+}
+
+/** "0300-1234567" or "+92 300 1234567" as WhatsApp writes it: 923001234567. */
+const international = (phone: string) =>
+  `92${phone
+    .replace(/[\s\-()]/g, '')
+    .replace(/^\+?92/, '0')
+    .slice(1)}`;
+
+/** Delivers a WhatsApp message to the site's webhook, signed the way Meta signs it. */
+export async function whatsappMessage(
+  fromPhone: string,
+  text: string,
+  options: { secret?: string } = {},
+): Promise<Reply> {
+  const payload = JSON.stringify({
+    object: 'whatsapp_business_account',
+    entry: [
+      {
+        changes: [
+          {
+            field: 'messages',
+            value: {
+              messages: [{ from: international(fromPhone), type: 'text', text: { body: text } }],
+            },
+          },
+        ],
+      },
+    ],
+  });
+  const signature = createHmac('sha256', options.secret ?? WHATSAPP_APP_SECRET)
+    .update(payload)
+    .digest('hex');
+  const meta = await newApi();
+  try {
+    // Sent as the exact text that was signed (re-encoding it would break the signature).
+    return await toReply(
+      await meta.context.fetch('/api/webhooks/whatsapp', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-hub-signature-256': `sha256=${signature}`,
+        },
+        data: payload,
+      }),
+    );
+  } finally {
+    await meta.dispose();
+  }
+}
+
+/** Starts a WhatsApp check for a number, from a fresh client so each has its own rate limits. */
+export async function startVerification(phone: string): Promise<{ id: string; code: string }> {
+  const client = await newApi();
+  try {
+    const reply = await client.post('/api/v1/verify', { phone });
+    if (reply.status !== 201) throw new Error(`Verify start failed: ${reply.status} ${reply.text}`);
+    return reply.data as { id: string; code: string };
+  } finally {
+    await client.dispose();
+  }
+}
+
+const proofs = new Map<string, { id: string; at: number }>();
+const PROOF_REUSE_MS = 20 * 60_000; // the site accepts a proof for 30 minutes
+
+/**
+ * Proves a number like a customer does (the code arrives on WhatsApp from that number) and
+ * returns the check's id for signup or checkout. Reused for a while, as the site allows.
+ */
+export async function verifyPhone(phone: string): Promise<string> {
+  const key = international(phone);
+  const known = proofs.get(key);
+  if (known && Date.now() - known.at < PROOF_REUSE_MS) return known.id;
+  const { id, code } = await startVerification(phone);
+  const delivered = await whatsappMessage(phone, `BBQ Store code: ${code}`);
+  if (delivered.status !== 200) throw new Error(`Webhook refused: ${delivered.status}`);
+  proofs.set(key, { id, at: Date.now() });
+  return id;
+}
+
+/** Signs up with a proven number (a fresh one unless given), like the sign-up page does. */
+export async function signUp(
+  api: Api,
+  input: { name: string; phone?: string; email?: string; password: string },
+): Promise<Reply & { phone: string }> {
+  const phone = input.phone ?? randomPhone();
+  const verificationId = await verifyPhone(phone);
+  const reply = await api.post('/api/auth/signup', { ...input, phone, verificationId });
+  return { ...reply, phone };
 }

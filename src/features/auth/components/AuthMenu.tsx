@@ -72,7 +72,7 @@ export function AuthMenu() {
         </Link>
       ) : null}
       <span className="hidden max-w-40 truncate text-sm text-stone-300 sm:inline">
-        {user.email}
+        {user.phone ?? user.email}
       </span>
       <Button variant="secondary" loading={loggingOut} onClick={() => void logout()}>
         {loggingOut ? t('loggingOut') : t('logout')}

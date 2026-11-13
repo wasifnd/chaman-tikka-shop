@@ -6,6 +6,7 @@ import {
   newApi,
   randomEmail,
   randomPhone,
+  signUp,
   signedIn,
   type Api,
 } from './support/client';
@@ -37,14 +38,9 @@ test.describe('customer account', () => {
   async function newCustomer(name = 'Account Tester') {
     const api = await newApi();
     const email = randomEmail('acct');
-    const signup = await api.post('/api/auth/signup', {
-      name,
-      email,
-      password: PASSWORD,
-      phone: randomPhone(),
-    });
+    const signup = await signUp(api, { name, email, password: PASSWORD });
     expect(signup.status).toBe(201);
-    return { api, email };
+    return { api, email, phone: signup.phone };
   }
 
   const body = (zoneId: string, extra: Record<string, unknown> = {}) => ({
@@ -246,7 +242,7 @@ test.describe('customer account', () => {
     });
 
     test('they show up on the addresses page and in the checkout profile', async () => {
-      const { api, email } = await newCustomer('Profile Person');
+      const { api, email, phone } = await newCustomer('Profile Person');
       await api.post(
         '/api/v1/account/addresses',
         body(world.zone.id, { label: 'Visible Home', addressLine1: '77 Visible Road' }),
@@ -257,11 +253,16 @@ test.describe('customer account', () => {
       expect(page.text).toContain('77 Visible Road');
 
       const profile = (await api.get('/api/v1/account/profile')).data as {
-        profile: { name: string; email: string; phone: string };
+        profile: { name: string; email: string; phone: string; phoneVerified: boolean };
         addresses: Address[];
       };
-      expect(profile.profile).toMatchObject({ name: 'Profile Person', email });
-      expect(profile.profile.phone).toMatch(/^03\d{9}$/);
+      // The sign-in number, already proven, so checkout won't ask to verify it again.
+      expect(profile.profile).toMatchObject({
+        name: 'Profile Person',
+        email,
+        phone,
+        phoneVerified: true,
+      });
       expect(profile.addresses).toHaveLength(1);
       await api.dispose();
     });

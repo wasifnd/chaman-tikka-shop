@@ -36,8 +36,10 @@ describe.skipIf(!url)('the customer account against Postgres', () => {
     const user = await db.prisma.user.create({
       data: {
         email: 'bob@example.com',
+        phone: '03007654321',
+        phoneVerifiedAt: new Date(),
         passwordHash: 'x',
-        customer: { create: { name: 'Bob', phone: '03007654321' } },
+        customer: { create: { name: 'Bob' } },
       },
       include: { customer: true },
     });
@@ -191,6 +193,7 @@ describe.skipIf(!url)('the customer account against Postgres', () => {
       expect(await repo.getProfile(bob)).toEqual({
         name: 'Bob',
         phone: '03007654321',
+        phoneVerified: true,
         email: 'bob@example.com',
       });
     });

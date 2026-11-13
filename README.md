@@ -48,9 +48,34 @@ touch your data, even on your development database. CI runs them against a throw
 Staff sign in at `/auth/login` and land on `/store/orders` (the order board). `/store/kitchen` is a
 simplified screen for the kitchen: only what has to be cooked, with one big button per ticket.
 
-`npm run db:seed` creates two demo accounts for local development: `staff@bbqstore.local` (store staff)
-and `admin@bbqstore.local`. Their password is `SEED_DEMO_PASSWORD` if set, otherwise a default written in
-`prisma/seed.ts`. **Change it, or delete these accounts, before going live.**
+Everyone signs in with their mobile number and password; email is optional. `npm run db:seed` creates two
+demo accounts for local development: `03000000002` (store staff) and `03000000001` (admin). Their password
+is `SEED_DEMO_PASSWORD` if set, otherwise a default written in `prisma/seed.ts`. **Change it, or delete
+these accounts, before going live.**
+
+## Phone verification (WhatsApp)
+
+Every account and every order needs a proven mobile number. Proving it is free: the site shows a 6-digit
+code, the customer taps **Verify number on WhatsApp** and sends it to the shop's WhatsApp number, and
+WhatsApp tells us which number the message came from. Messages customers send to a business cost nothing on
+the WhatsApp Business Platform (sending codes to customers by SMS or WhatsApp is billed per message).
+A proven number is good for 30 minutes. Guest orders placed with a proven number appear in the account that
+signs in with that number, including ones placed before the account existed.
+
+To set it up, create an app at developers.facebook.com, add the WhatsApp product and a business phone number,
+then set:
+
+| Variable                   | What it is                                                                |
+| -------------------------- | ------------------------------------------------------------------------- |
+| `WHATSAPP_BUSINESS_NUMBER` | The shop's WhatsApp number, e.g. `923001234567`                           |
+| `WHATSAPP_APP_SECRET`      | App settings, Basic, App secret (checks that calls really come from Meta) |
+| `WHATSAPP_VERIFY_TOKEN`    | Any long random text; enter the same text in the webhook settings         |
+| `WHATSAPP_ACCESS_TOKEN`    | Optional: lets the shop reply "verified" (free up to 1,000 replies/month) |
+| `WHATSAPP_PHONE_NUMBER_ID` | Optional, with the access token: the number's ID from the WhatsApp page   |
+
+In the app's WhatsApp webhook settings, use `https://<your site>/api/webhooks/whatsapp` as the callback URL
+and subscribe to `messages`. Without these settings, local development shows a **Pretend I sent it** button
+instead, and a live site refuses new accounts and orders with a clear message, so set them before going live.
 
 ## Admin panel
 
@@ -58,7 +83,13 @@ Sign in as an admin and open `/admin`. From there the owner can edit categories,
 
 ## End-to-end scenarios
 
-`npm run e2e` drives a running site over HTTP as a guest, a customer, store staff and an admin (about 250 checks: ordering, kitchen flow, live feed, menu and settings changes, team management, security). No browser is needed. Start the site first (`npm run build && npm start`), then:
+`npm run e2e` drives a running site over HTTP as a guest, a customer, store staff and an admin (about 270 checks: ordering, phone verification, kitchen flow, live feed, menu and settings changes, team management, security). No browser is needed. The scenarios prove phone numbers by sending the site WhatsApp webhook calls signed with a test app secret, so start the site with these test settings (`npm run build` first):
+
+```bash
+WHATSAPP_BUSINESS_NUMBER=923000000000 WHATSAPP_APP_SECRET=e2e-whatsapp-app-secret WHATSAPP_VERIFY_TOKEN=e2e-whatsapp-verify-token npm start
+```
+
+Then, in another terminal:
 
 ```bash
 E2E_BASE_URL=http://localhost:3000 npm run e2e

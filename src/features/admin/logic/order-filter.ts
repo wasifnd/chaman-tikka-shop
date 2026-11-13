@@ -27,7 +27,8 @@ export function buildOrderFilter(query: OrdersQuery): Prisma.OrderWhereInput {
   if (query.q) {
     // Only text that looks like a phone number is matched against phones, by its digits alone,
     // so "0300-123" finds "03001234567" but a name with a digit in it doesn't match random phones.
-    const digits = PHONE_LIKE.test(query.q) ? query.q.replace(/\D/g, '') : '';
+    // Numbers are stored as 03XXXXXXXXX, so "+92 300…" is searched as "0300…".
+    const digits = PHONE_LIKE.test(query.q) ? query.q.replace(/\D/g, '').replace(/^923/, '03') : '';
     and.push({
       OR: [
         { orderNumber: { contains: query.q, mode: 'insensitive' } },

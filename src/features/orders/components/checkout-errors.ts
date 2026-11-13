@@ -35,6 +35,11 @@ export function classifyFailure(error: ApiError): CheckoutFailure {
       return { kind: 'busy' };
     case 'ORDER_IN_PROGRESS':
       return { kind: 'inProgress' };
+    case 'PHONE_NOT_VERIFIED':
+      return {
+        kind: 'fields',
+        fields: [{ field: 'phone', message: error.details?.['contact.phone'] ?? error.message }],
+      };
     case 'VALIDATION_ERROR': {
       const fields = Object.entries(error.details ?? {}).flatMap(([path, message]) => {
         const field = FIELD_FOR_PATH[path];
