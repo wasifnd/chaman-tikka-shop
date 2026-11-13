@@ -602,6 +602,61 @@
       "history": "What happened",
       "by": "by {who}",
       "byCustomer": "by the system or customer"
+    },
+    "analytics": {
+      "title": "Sales and analytics",
+      "showing": "Showing {from} to {to}",
+      "dayNote": "A day runs noon to noon, so late-night orders count towards the evening they belong to.",
+      "rangeLabel": "Choose dates",
+      "presets": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "7d": "Last 7 days",
+        "30d": "Last 30 days"
+      },
+      "from": "From",
+      "to": "To",
+      "show": "Show",
+      "cards": {
+        "orders": "Orders",
+        "sales": "Sales",
+        "average": "Average order",
+        "cancelled": "Cancelled",
+        "itemsSold": "Items sold",
+        "discounts": "Coupon discounts given"
+      },
+      "change": {
+        "up": "Up {percent}% on the dates before",
+        "down": "Down {percent}% on the dates before",
+        "flat": "Same as the dates before",
+        "none": "No earlier orders to compare with"
+      },
+      "cancelRate": "{percent}% of orders received",
+      "empty": "No orders in these dates.",
+      "daily": "Sales each day",
+      "day": "Day",
+      "sales": "Sales",
+      "dailyDetail": "{day}: {sales} from {orders, plural, one {# order} other {# orders}}",
+      "hours": "Orders by hour",
+      "hoursHint": "When customers order, in Karachi time, from noon to the next morning.",
+      "hour": "Hour",
+      "hourDetail": "{hour}: {orders, plural, one {# order} other {# orders}}",
+      "byType": "Orders by type",
+      "customers": "{signedIn, plural, one {# order} other {# orders}} from signed-in customers and {guests, plural, one {# order} other {# orders}} from guests.",
+      "products": "Best sellers",
+      "sold": "{count} sold",
+      "money": "Where the money went",
+      "deliveryFees": "Delivery fees collected",
+      "tax": "Tax collected",
+      "discounts": "Coupon discounts given",
+      "viewTable": "View as a table",
+      "export": "Download as a spreadsheet",
+      "exportHint": "Opens in Excel or Google Sheets. Uses the dates chosen above.",
+      "exports": {
+        "orders": "Every order",
+        "products": "Items sold",
+        "daily": "Sales by day"
+      }
     }
   },
   "errors": {
