@@ -1,10 +1,10 @@
 import { cookies } from 'next/headers';
-import { NextResponse, type NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { getAuthService, getCookieConfig } from '@/features/auth/server';
 import { REFRESH_COOKIE, clearAuthCookies, setAuthCookies } from '@/lib/auth/cookies';
 import { AppError } from '@/lib/errors';
 import { assertSameOrigin } from '@/lib/http/guards';
-import { ok, route } from '@/lib/http/response';
+import { ok, redirectToPath, route } from '@/lib/http/response';
 import { safeNextPath } from '@/lib/auth/roles';
 
 /** API clients: rotate the refresh token and return the user as JSON. */
@@ -33,16 +33,15 @@ export async function GET(request: NextRequest) {
   const store = await cookies();
   const token = store.get(REFRESH_COOKIE)?.value;
 
+  // Relative redirects keep the browser on the address it used (see redirectToPath).
   if (token) {
     try {
       const session = await getAuthService().refresh(token);
       setAuthCookies(store, session, getCookieConfig());
-      return NextResponse.redirect(new URL(next, request.url));
+      return redirectToPath(next);
     } catch {
       clearAuthCookies(store, getCookieConfig());
     }
   }
-  const login = new URL('/auth/login', request.url);
-  login.searchParams.set('next', next);
-  return NextResponse.redirect(login);
+  return redirectToPath(`/auth/login?${new URLSearchParams({ next }).toString()}`);
 }

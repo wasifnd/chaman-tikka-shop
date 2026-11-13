@@ -62,7 +62,7 @@ export function createPrismaAuthRepository(prisma: PrismaClient): AuthRepository
     findRefreshToken(tokenHash) {
       return prisma.refreshToken.findUnique({
         where: { tokenHash },
-        select: { id: true, userId: true, expiresAt: true, revokedAt: true },
+        select: { id: true, userId: true, expiresAt: true, revokedAt: true, rotatedAt: true },
       });
     },
 
@@ -75,11 +75,27 @@ export function createPrismaAuthRepository(prisma: PrismaClient): AuthRepository
       return count === 1;
     },
 
-    async revokeAllRefreshTokens(userId) {
-      await prisma.refreshToken.updateMany({
-        where: { userId, revokedAt: null },
-        data: { revokedAt: new Date() },
+    async rotateRefreshToken(id, at) {
+      // Conditional update makes rotation atomic: only one concurrent caller gets count 1.
+      const { count } = await prisma.refreshToken.updateMany({
+        where: { id, revokedAt: null },
+        data: { revokedAt: at, rotatedAt: at },
       });
+      return count === 1;
+    },
+
+    async revokeAllRefreshTokens(userId) {
+      // One transaction: end every session and take away any grace period in one go.
+      await prisma.$transaction([
+        prisma.refreshToken.updateMany({
+          where: { userId, revokedAt: null },
+          data: { revokedAt: new Date() },
+        }),
+        prisma.refreshToken.updateMany({
+          where: { userId, rotatedAt: { not: null } },
+          data: { rotatedAt: null },
+        }),
+      ]);
     },
   };
 }

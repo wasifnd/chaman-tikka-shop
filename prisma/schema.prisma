@@ -82,6 +82,9 @@ model RefreshToken {
   tokenHash String    @unique @map("token_hash")
   expiresAt DateTime  @map("expires_at")
   revokedAt DateTime? @map("revoked_at")
+  // When a renewal replaced this token. A browser that lost the renewal's answer may present it
+  // again for a few seconds; that is allowed (see auth.service refresh). Null after logout.
+  rotatedAt DateTime? @map("rotated_at")
   createdAt DateTime  @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

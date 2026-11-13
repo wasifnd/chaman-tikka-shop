@@ -259,12 +259,17 @@ export function createOperationsRepository(prisma: PrismaClient) {
               : { passwordHash: await hashPassword(input.password) }),
           },
         }),
-        // Switching someone off or resetting their password also ends every session they have open.
+        // Switching someone off or resetting their password also ends every session they have open,
+        // including the short grace a just-renewed token would otherwise still have.
         ...(loggedOut
           ? [
               prisma.refreshToken.updateMany({
                 where: { userId: targetId, revokedAt: null },
                 data: { revokedAt: new Date() },
+              }),
+              prisma.refreshToken.updateMany({
+                where: { userId: targetId, rotatedAt: { not: null } },
+                data: { rotatedAt: null },
               }),
             ]
           : []),
