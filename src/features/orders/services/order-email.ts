@@ -1,11 +1,17 @@
 import { formatPrice } from '@/shared/utils/format';
 import type { OrderSnapshot } from '../types/snapshot.types';
 
+export interface EmailAttachment {
+  filename: string;
+  content: Uint8Array;
+}
+
 export interface Email {
   to: string;
   subject: string;
   html: string;
   text: string;
+  attachments?: EmailAttachment[];
 }
 
 export interface Emailer {
@@ -132,11 +138,26 @@ export interface ResendOptions {
 /** Sends through Resend's HTTP API. Throws on failure so the caller can log it. */
 export function createResendEmailer({ apiKey, from, fetcher = fetch }: ResendOptions): Emailer {
   return {
-    async send({ to, subject, html, text }) {
+    async send({ to, subject, html, text, attachments }) {
       const response = await fetcher('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from, to: [to], subject, html, text }),
+        body: JSON.stringify({
+          from,
+          to: [to],
+          subject,
+          html,
+          text,
+          // Resend takes attached files as base64 text.
+          ...(attachments?.length
+            ? {
+                attachments: attachments.map((file) => ({
+                  filename: file.filename,
+                  content: Buffer.from(file.content).toString('base64'),
+                })),
+              }
+            : {}),
+        }),
       });
       if (!response.ok) {
         throw new Error(`Email provider rejected the message (${String(response.status)})`);

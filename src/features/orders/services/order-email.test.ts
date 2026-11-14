@@ -35,7 +35,7 @@ const build = (overrides: Partial<OrderSnapshot> = {}, name = 'Ali Khan') =>
     customerName: name,
     to: 'ali@example.com',
     trackingUrl: 'https://bbqstore.pk/track/abc',
-    restaurantName: 'BBQ Store',
+    restaurantName: 'Chaman Tikka Shop',
   });
 
 describe('escapeHtml', () => {
@@ -54,7 +54,7 @@ describe('buildOrderConfirmationEmail', () => {
   it('addresses the right person and mentions the order number in the subject', () => {
     const email = build();
     expect(email.to).toBe('ali@example.com');
-    expect(email.subject).toBe('Order BBQ-2026-0042 received - BBQ Store');
+    expect(email.subject).toBe('Order BBQ-2026-0042 received - Chaman Tikka Shop');
   });
 
   it('lists items, options, totals, payment and the tracking link in the text version', () => {
@@ -121,7 +121,7 @@ describe('buildOrderConfirmationEmail', () => {
       customerName: 'Ali',
       to: 'a@b.pk',
       trackingUrl: 'https://x.test/?a=1&b="2"',
-      restaurantName: 'BBQ Store',
+      restaurantName: 'Chaman Tikka Shop',
     });
     expect(email.html).toContain('href="https://x.test/?a=1&amp;b=&quot;2&quot;"');
   });
@@ -155,6 +155,20 @@ describe('createResendEmailer', () => {
       subject: 'S',
       html: '<p>x</p>',
       text: 'x',
+    });
+  });
+
+  it('sends attached files as base64, as Resend expects', async () => {
+    const fetcher = vi.fn<typeof fetch>(() => Promise.resolve(new Response('{}', { status: 200 })));
+    await createResendEmailer({ apiKey: 're_123', from: 'orders@bbqstore.pk', fetcher }).send({
+      ...email,
+      attachments: [
+        { filename: 'receipt-BBQ-2026-0001.pdf', content: new Uint8Array([37, 80, 68, 70]) },
+      ],
+    });
+    const body = fetcher.mock.calls[0]?.[1]?.body;
+    expect(JSON.parse(typeof body === 'string' ? body : '{}')).toMatchObject({
+      attachments: [{ filename: 'receipt-BBQ-2026-0001.pdf', content: 'JVBERg==' }],
     });
   });
 

@@ -185,7 +185,9 @@
     "payCod": "Pay in cash when your order arrives.",
     "payCounter": "Pay in cash at the counter.",
     "stepCurrent": "current step",
-    "stepDone": "done"
+    "stepDone": "done",
+    "downloadReceipt": "Download receipt (PDF)",
+    "openReceipt": "Open receipt"
   },
   "checkout": {
     "title": "Checkout",
@@ -304,7 +306,9 @@
       "title": "Recently finished",
       "empty": "Nothing finished in the last 12 hours."
     },
-    "panel": "Store panel"
+    "panel": "Store panel",
+    "receipt": "Receipt",
+    "receiptLabel": "Open the receipt for order {number}"
   },
   "admin": {
     "panel": "Admin panel",
@@ -610,7 +614,8 @@
       "total": "Total",
       "history": "What happened",
       "by": "by {who}",
-      "byCustomer": "by the system or customer"
+      "byCustomer": "by the system or customer",
+      "receipt": "Receipt (PDF)"
     },
     "analytics": {
       "title": "Sales and analytics",
@@ -722,7 +727,9 @@
       "pages": "Order pages",
       "previous": "Previous",
       "next": "Next",
-      "pageOf": "Page {page} of {pages}"
+      "pageOf": "Page {page} of {pages}",
+      "receipt": "Receipt",
+      "receiptLabel": "Download the receipt for order {number}"
     },
     "addresses": {
       "title": "My addresses",

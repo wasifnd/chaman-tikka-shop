@@ -77,4 +77,37 @@ describe('notifyOrderPlaced', () => {
     expect(spy).toHaveBeenCalled();
     spy.mockRestore();
   });
+
+  it('attaches the receipt PDF when one is available', async () => {
+    const { deps, sent } = setup();
+    const receipt = vi.fn(() =>
+      Promise.resolve({
+        filename: 'receipt-BBQ-2026-0001.pdf',
+        content: new Uint8Array([1, 2, 3]),
+      }),
+    );
+    expect(await notifyOrderPlaced({ ...deps, receipt }, input)).toBe(true);
+    expect(receipt).toHaveBeenCalledWith('token-123');
+    expect(sent[0]?.attachments).toEqual([
+      { filename: 'receipt-BBQ-2026-0001.pdf', content: new Uint8Array([1, 2, 3]) },
+    ]);
+  });
+
+  it('still sends the email when the receipt cannot be made', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { deps, sent } = setup();
+    const receipt = vi.fn(() => Promise.reject(new Error('pdf failed')));
+    expect(await notifyOrderPlaced({ ...deps, receipt }, input)).toBe(true);
+    expect(sent[0]?.attachments).toBeUndefined();
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('sends no attachment when the receipt is missing', async () => {
+    const { deps, sent } = setup();
+    expect(await notifyOrderPlaced({ ...deps, receipt: () => Promise.resolve(null) }, input)).toBe(
+      true,
+    );
+    expect(sent[0]?.attachments).toBeUndefined();
+  });
 });

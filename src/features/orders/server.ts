@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma/client';
 import { createNoopEmailer, createResendEmailer, type Emailer } from './services/order-email';
+import { createReceiptRepository } from './receipt/receipt.repository';
 import { createOrderRepository, type OrderRepository } from './services/order.repository';
 import { createOrderService, type OrderService } from './services/order.service';
 import { createOrderPhoneRepository, type OrderPhoneDeps } from './services/order-phone';
@@ -21,6 +22,11 @@ export function getOrderPhoneDeps(): OrderPhoneDeps {
     ...createOrderPhoneRepository(prisma),
     provenAt: (id, phone) => verification.provenAt(id, phone),
   };
+}
+
+/** Orders as receipts (PDF). */
+export function getReceiptRepository() {
+  return createReceiptRepository(prisma);
 }
 
 export function getOrderRepository(): OrderRepository {
