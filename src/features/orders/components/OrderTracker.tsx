@@ -58,6 +58,23 @@ export function OrderTracker({
         {snapshot.areaName ? (
           <p className="text-stone-400">{t('deliveringTo', { area: snapshot.areaName })}</p>
         ) : null}
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <a
+            href={`/api/v1/orders/${token}/receipt?download=1`}
+            download
+            className="bg-ember hover:bg-ember-deep focus-visible:outline-gold inline-flex min-h-11 items-center rounded-lg px-4 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
+            {t('downloadReceipt')}
+          </a>
+          <a
+            href={`/api/v1/orders/${token}/receipt`}
+            target="_blank"
+            rel="noopener"
+            className="text-gold focus-visible:outline-gold inline-flex min-h-11 items-center text-sm underline focus-visible:outline-2"
+          >
+            {t('openReceipt')}
+          </a>
+        </div>
       </header>
 
       {cancelled ? (

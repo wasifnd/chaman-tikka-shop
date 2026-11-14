@@ -37,10 +37,18 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
         title={order.orderNumber}
         hint={`${t(`type.${order.type}`)} · ${formatKarachi(order.createdAt)}`}
       />
-      <p className="mb-4">
+      <p className="mb-4 flex flex-wrap gap-4">
         <Link href="/admin/orders" className="text-gold underline">
           {t('back')}
         </Link>
+        <a
+          href={`/api/v1/store/orders/${order.id}/receipt`}
+          target="_blank"
+          rel="noopener"
+          className="text-gold underline"
+        >
+          {t('receipt')}
+        </a>
       </p>
 
       <div className="grid gap-6 lg:grid-cols-2">
