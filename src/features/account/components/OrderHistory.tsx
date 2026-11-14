@@ -56,6 +56,14 @@ export async function OrderHistory({ history }: { history: OrderHistoryPage }) {
                 >
                   {t('track')}
                 </Link>
+                <a
+                  href={`/api/v1/orders/${order.trackingToken}/receipt?download=1`}
+                  download
+                  aria-label={t('receiptLabel', { number: order.orderNumber })}
+                  className="text-gold text-sm underline"
+                >
+                  {t('receipt')}
+                </a>
               </div>
             </li>
           );

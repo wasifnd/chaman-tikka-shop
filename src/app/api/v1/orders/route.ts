@@ -4,7 +4,10 @@ import {
   getOrderPhoneDeps,
   getOrderRepository,
   getOrderService,
+  getReceiptRepository,
 } from '@/features/orders/server';
+import { SHOP } from '@/features/orders/receipt/receipt.repository';
+import { receiptFileName, renderReceiptPdf } from '@/features/orders/receipt/receipt-pdf';
 import { resolveOrderOwner } from '@/features/orders/services/order-phone';
 import { notifyOrderPlaced } from '@/features/orders/services/order-notify';
 import { placeOrderSchema } from '@/features/orders/schemas/place-order.schema';
@@ -46,6 +49,14 @@ export const POST = route(async (request: Request) => {
           findSnapshot: (token) => getOrderRepository().findSnapshot(token),
           emailer: getEmailer(),
           baseUrl: siteUrl(),
+          receipt: async (trackingToken) => {
+            const found = await getReceiptRepository().find({ trackingToken });
+            if (!found) return null;
+            return {
+              filename: receiptFileName(found.receipt.orderNumber),
+              content: await renderReceiptPdf(found.receipt, SHOP),
+            };
+          },
         },
         {
           trackingToken: placed.trackingToken,

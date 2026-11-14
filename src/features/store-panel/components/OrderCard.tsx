@@ -66,6 +66,15 @@ export function OrderCard({ order, nowMs, busy, onAction }: OrderCardProps) {
       <div className="flex items-start justify-between gap-2">
         <div>
           <h3 className="text-lg font-bold">{order.orderNumber}</h3>
+          <a
+            href={`/api/v1/store/orders/${order.id}/receipt`}
+            target="_blank"
+            rel="noopener"
+            aria-label={t('receiptLabel', { number: order.orderNumber })}
+            className="text-gold text-sm underline"
+          >
+            {t('receipt')}
+          </a>
           <p className="text-sm text-stone-400">
             {t(`type.${order.type}`)} · {t('waiting', { age: formatAge(ageMinutes(order, nowMs)) })}
           </p>
