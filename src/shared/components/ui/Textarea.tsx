@@ -25,7 +25,7 @@ export function Textarea({ label, error, className, id, ref, ...props }: Textare
         aria-describedby={error ? errorId : undefined}
         className={cn(
           'bg-ash rounded-lg px-3 py-2 text-stone-100 ring-1 ring-stone-700 placeholder:text-stone-500',
-          'focus-visible:outline-ember focus-visible:outline-2',
+          'focus-visible:outline-gold focus-visible:outline-2',
           error && 'ring-red-500',
           className,
         )}

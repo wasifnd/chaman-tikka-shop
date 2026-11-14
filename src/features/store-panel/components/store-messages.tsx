@@ -50,7 +50,7 @@ export function SignedOutNotice() {
       <Alert>{t('signedOut')}</Alert>
       <Link
         href="/auth/login?next=/store/orders"
-        className="bg-ember inline-flex min-h-11 items-center rounded-lg px-4 font-semibold text-white hover:bg-orange-600"
+        className="bg-ember hover:bg-ember-deep inline-flex min-h-11 items-center rounded-lg px-4 font-semibold text-white"
       >
         {t('signIn')}
       </Link>

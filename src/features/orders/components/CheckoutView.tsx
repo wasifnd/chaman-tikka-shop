@@ -144,7 +144,7 @@ export function CheckoutView({ zones, pollMs }: { zones: ZoneOption[]; pollMs?: 
     return (
       <div className="flex flex-col items-start gap-3 py-8">
         <p className="text-lg font-semibold">{t('emptyCart')}</p>
-        <Link href="/menu" className="text-ember underline">
+        <Link href="/menu" className="text-gold underline">
           {t('browseMenu')}
         </Link>
       </div>

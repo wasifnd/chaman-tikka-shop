@@ -54,7 +54,7 @@ export default async function DealPage({ params }: Props) {
           className="rounded-xl"
         />
         <div className="flex flex-col gap-4">
-          <h1 className="text-3xl font-bold">{deal.name}</h1>
+          <h1 className="font-display text-gold text-4xl tracking-wide">{deal.name}</h1>
           {deal.description ? <p className="text-stone-300">{deal.description}</p> : null}
           <p className="flex flex-wrap items-baseline gap-2">
             <span className="text-2xl font-bold">{formatPrice(deal.price)}</span>

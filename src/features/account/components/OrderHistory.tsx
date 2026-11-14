@@ -16,7 +16,7 @@ export async function OrderHistory({ history }: { history: OrderHistoryPage }) {
     return (
       <div className="flex flex-col items-start gap-3 py-6">
         <p className="text-stone-300">{t('empty')}</p>
-        <Link href="/menu" className="text-ember underline">
+        <Link href="/menu" className="text-gold underline">
           {t('browse')}
         </Link>
       </div>
@@ -52,7 +52,7 @@ export async function OrderHistory({ history }: { history: OrderHistoryPage }) {
                 <Link
                   href={`/track/${order.trackingToken}`}
                   aria-label={t('trackLabel', { number: order.orderNumber })}
-                  className="text-ember text-sm underline"
+                  className="text-gold text-sm underline"
                 >
                   {t('track')}
                 </Link>
@@ -66,7 +66,7 @@ export async function OrderHistory({ history }: { history: OrderHistoryPage }) {
         <nav aria-label={t('pages')} className="mt-6 flex items-center justify-between">
           {history.page > 1 ? (
             <Link
-              className="text-ember underline"
+              className="text-gold underline"
               href={`/account/orders?page=${String(history.page - 1)}`}
             >
               {t('previous')}
@@ -79,7 +79,7 @@ export async function OrderHistory({ history }: { history: OrderHistoryPage }) {
           </span>
           {history.page < pages ? (
             <Link
-              className="text-ember underline"
+              className="text-gold underline"
               href={`/account/orders?page=${String(history.page + 1)}`}
             >
               {t('next')}

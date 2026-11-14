@@ -32,7 +32,7 @@ export function CouponBox({ code, result, onApply, onRemove }: CouponBoxProps) {
         <button
           type="button"
           onClick={onRemove}
-          className="focus-visible:outline-ember min-h-11 self-start rounded-lg px-3 text-sm text-stone-400 underline hover:text-white focus-visible:outline-2"
+          className="focus-visible:outline-gold min-h-11 self-start rounded-lg px-3 text-sm text-stone-400 underline hover:text-white focus-visible:outline-2"
         >
           {t('removeCoupon')} ({code})
         </button>

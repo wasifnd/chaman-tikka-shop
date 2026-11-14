@@ -29,7 +29,7 @@ export function OrderOptions({ orderType, zoneId, zones, onOrderType, onZone }: 
           {TYPES.map(({ value, label }) => (
             <label
               key={value}
-              className="bg-ash/60 has-checked:ring-ember has-focus-visible:outline-ember flex min-h-11 cursor-pointer items-center justify-center rounded-lg px-2 text-sm ring-1 ring-stone-800 has-focus-visible:outline-2"
+              className="bg-ash/60 has-checked:ring-ember has-focus-visible:outline-gold flex min-h-11 cursor-pointer items-center justify-center rounded-lg px-2 text-sm ring-1 ring-stone-800 has-focus-visible:outline-2"
             >
               <input
                 type="radio"
@@ -61,7 +61,7 @@ export function OrderOptions({ orderType, zoneId, zones, onOrderType, onZone }: 
               onChange={(event) => {
                 onZone(event.target.value === '' ? null : event.target.value);
               }}
-              className="bg-ash focus-visible:outline-ember min-h-11 rounded-lg px-3 text-stone-100 ring-1 ring-stone-700 focus-visible:outline-2"
+              className="bg-ash focus-visible:outline-gold min-h-11 rounded-lg px-3 text-stone-100 ring-1 ring-stone-700 focus-visible:outline-2"
             >
               <option value="">{t('chooseArea')}</option>
               {zones.map((zone) => (

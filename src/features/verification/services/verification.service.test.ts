@@ -70,7 +70,7 @@ describe('phone verification', () => {
     const { service } = setup();
     const request = await service.start(PHONE);
     expect(await service.status(request.id)).toBe('pending');
-    expect(await service.confirm(PHONE, `BBQ Store code: ${request.code}`)).toBe(true);
+    expect(await service.confirm(PHONE, `Chaman Tikka Shop code: ${request.code}`)).toBe(true);
     expect(await service.status(request.id)).toBe('verified');
     expect(await service.provenAt(request.id, PHONE)).toEqual(start);
   });

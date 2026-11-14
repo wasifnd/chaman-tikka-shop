@@ -144,7 +144,7 @@ function Ticket({
           onClick={() => {
             onMove(next.to);
           }}
-          className="bg-ember focus-visible:outline-ember min-h-16 rounded-xl text-2xl font-bold text-white hover:bg-orange-600 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+          className="bg-ember focus-visible:outline-gold hover:bg-ember-deep min-h-16 rounded-xl text-2xl font-bold text-white focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
         >
           {t(
             `kitchenActions.${next.to === 'PREPARING' ? 'PREPARING' : next.to === 'READY' ? 'READY' : 'CONFIRMED'}`,

@@ -61,11 +61,15 @@ describe.skipIf(!url)('phone accounts against Postgres', () => {
       expect(await checks.status(request.id)).toBe('pending');
 
       // The right code from someone else's phone proves nothing.
-      expect(await checks.confirm('03222222222', `BBQ Store code: ${request.code}`)).toBe(false);
-      expect(await checks.confirm('03111111111', 'BBQ Store code: 000000x')).toBe(false);
+      expect(await checks.confirm('03222222222', `Chaman Tikka Shop code: ${request.code}`)).toBe(
+        false,
+      );
+      expect(await checks.confirm('03111111111', 'Chaman Tikka Shop code: 000000x')).toBe(false);
       expect(await checks.status(request.id)).toBe('pending');
 
-      expect(await checks.confirm('03111111111', `BBQ Store code: ${request.code}`)).toBe(true);
+      expect(await checks.confirm('03111111111', `Chaman Tikka Shop code: ${request.code}`)).toBe(
+        true,
+      );
       expect(await checks.status(request.id)).toBe('verified');
       expect(await checks.provenAt(request.id, '03111111111')).toEqual(current);
       expect(await checks.provenAt(request.id, '03222222222')).toBeNull();

@@ -1,10 +1,21 @@
 @import 'tailwindcss';
 
+/*
+ * Colours taken from the shop's signboard: fire red banners, flame orange, the yellow of the
+ * lettering, all on a near-black, smoky background.
+ */
 @theme {
-  --color-ember: #e8541e;
-  --color-char: #121212;
-  --color-ash: #1c1c1c;
+  --color-ember: #d7261e; /* fire red: buttons, banners, the brush stroke */
+  --color-ember-deep: #a8161a; /* pressed and hover */
+  --color-flame: #f26a1b; /* the orange of the flames */
+  --color-gold: #ffd024; /* the sign's yellow lettering, prices and links */
+  --color-gold-deep: #e9a400;
+  --color-char: #0c0907;
+  --color-ash: #1b1310;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /* Bold signboard lettering, for the Urdu name and headings (falls back per letter). */
+  --font-display:
+    var(--font-lalezar), var(--font-naskh), var(--font-inter), ui-sans-serif, sans-serif;
 }
 
 html {
@@ -12,6 +23,58 @@ html {
 }
 
 body {
-  background: var(--color-char);
+  background-color: var(--color-char);
+  /* A faint glow of fire from above, like the lit signboard. */
+  background-image: radial-gradient(120% 50% at 50% -10%, rgb(215 38 30 / 0.16), transparent 60%);
+  background-repeat: no-repeat;
   color: #f5f5f4;
+}
+
+/* The red brush stroke behind the shop's name on the signboard. */
+@utility brush-stroke {
+  background-image: linear-gradient(100deg, #8f0f12, var(--color-ember) 35%, #c01c1a 75%, #8f0f12);
+  clip-path: polygon(
+    3% 14%,
+    16% 2%,
+    48% 8%,
+    84% 0,
+    99% 10%,
+    100% 52%,
+    97% 90%,
+    72% 100%,
+    38% 93%,
+    10% 100%,
+    1% 84%,
+    0 42%
+  );
+}
+
+/* The thin red-orange-yellow line that edges the header and footer, like the lit sign. */
+@utility fire-rule {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-ember-deep),
+    var(--color-ember) 20%,
+    var(--color-flame) 45%,
+    var(--color-gold) 50%,
+    var(--color-flame) 55%,
+    var(--color-ember) 80%,
+    var(--color-ember-deep)
+  );
+}
+
+/* Flames rising from the bottom of the hero, drawn with gradients (no images to download). */
+@utility flame-glow {
+  background-image:
+    radial-gradient(40% 50% at 50% 92%, rgb(255 208 36 / 0.3), transparent 70%),
+    radial-gradient(55% 65% at 22% 95%, rgb(242 106 27 / 0.38), transparent 70%),
+    radial-gradient(55% 65% at 78% 95%, rgb(215 38 30 / 0.45), transparent 70%),
+    radial-gradient(90% 60% at 50% 0%, rgb(255 255 255 / 0.04), transparent 70%);
+}
+
+/* The dark outline around the sign's yellow letters, so they stand out on red or on flames. */
+@utility sign-shadow {
+  text-shadow:
+    0 2px 0 #4a0707,
+    0 0 18px rgb(0 0 0 / 0.55);
 }

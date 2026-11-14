@@ -233,7 +233,7 @@ export async function verifyPhone(phone: string): Promise<string> {
   const known = proofs.get(key);
   if (known && Date.now() - known.at < PROOF_REUSE_MS) return known.id;
   const { id, code } = await startVerification(phone);
-  const delivered = await whatsappMessage(phone, `BBQ Store code: ${code}`);
+  const delivered = await whatsappMessage(phone, `Chaman Tikka Shop code: ${code}`);
   if (delivered.status !== 200) throw new Error(`Webhook refused: ${delivered.status}`);
   proofs.set(key, { id, at: Date.now() });
   return id;

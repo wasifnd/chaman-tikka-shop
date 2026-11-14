@@ -17,7 +17,7 @@ import { isNotFound, isUniqueViolation } from './prisma-errors';
 
 const SETTINGS_KEY = 'restaurant';
 const DEFAULT_RESTAURANT: RestaurantSettingsInput = {
-  name: 'BBQ Store',
+  name: 'Chaman Tikka Shop',
   address: null,
   taxRatePercent: 0,
   orderingEnabled: true,

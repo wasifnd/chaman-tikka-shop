@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProduct((await params).slug);
   if (!product) return { title: 'Not found' };
   const description =
-    product.description ?? `${product.name} from BBQ Store, ${formatPrice(product.price)}.`;
+    product.description ?? `${product.name} from Chaman Tikka Shop, ${formatPrice(product.price)}.`;
   return {
     title: product.name,
     description,
@@ -73,7 +73,7 @@ export default async function ProductPage({ params }: Props) {
         <div className="flex flex-col gap-4">
           <div>
             <p className="text-sm text-stone-400">{product.categoryName}</p>
-            <h1 className="text-3xl font-bold">{product.name}</h1>
+            <h1 className="font-display text-gold text-4xl tracking-wide">{product.name}</h1>
             <p className="mt-2 flex items-baseline gap-2 text-xl">
               <span className="font-semibold">{formatPrice(product.price)}</span>
               {product.originalPrice ? (

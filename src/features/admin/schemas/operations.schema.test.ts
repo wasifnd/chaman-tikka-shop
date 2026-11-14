@@ -9,7 +9,12 @@ import {
 } from './operations.schema';
 
 describe('restaurantSettingsSchema', () => {
-  const valid = { name: 'BBQ Store', address: '', taxRatePercent: 5, orderingEnabled: true };
+  const valid = {
+    name: 'Chaman Tikka Shop',
+    address: '',
+    taxRatePercent: 5,
+    orderingEnabled: true,
+  };
 
   it('accepts valid settings and turns a blank address into null', () => {
     expect(restaurantSettingsSchema.parse(valid)).toMatchObject({ address: null });

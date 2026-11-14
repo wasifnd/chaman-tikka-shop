@@ -1,4 +1,4 @@
-// BBQ Store — release 1 schema.
+// Chaman Tikka Shop — release 1 schema.
 // Trimmed from the blueprint: Khata, CMS, media, wishlist, notifications and audit logs
 // are deferred. Added: OrderEvent (realtime catch-up) and IdempotencyKey (safe retries).
 

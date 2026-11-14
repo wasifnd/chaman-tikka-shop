@@ -114,11 +114,14 @@ test.describe('admin: running the restaurant', () => {
     });
 
     test('the restaurant name and address can be changed', async () => {
-      await save({ restaurant: { name: `BBQ Store ${tag}`, address: '12 Test Road' } });
+      await save({ restaurant: { name: `Chaman Tikka Shop ${tag}`, address: '12 Test Road' } });
       const now = (await admin.get('/api/v1/admin/settings')).data as {
         restaurant: { name: string; address: string };
       };
-      expect(now.restaurant).toMatchObject({ name: `BBQ Store ${tag}`, address: '12 Test Road' });
+      expect(now.restaurant).toMatchObject({
+        name: `Chaman Tikka Shop ${tag}`,
+        address: '12 Test Road',
+      });
       await save({ restaurant: { name: restaurant['name'], address: restaurant['address'] } });
     });
 

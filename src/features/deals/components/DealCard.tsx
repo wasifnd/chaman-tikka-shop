@@ -12,20 +12,22 @@ export function DealCard({ deal }: { deal: DealSummary }) {
     <li className="contents">
       <Link
         href={`/deals/${deal.slug}`}
-        className="group bg-ash/60 focus-visible:outline-ember flex flex-col overflow-hidden rounded-xl ring-1 ring-stone-800 transition-colors hover:ring-stone-600 focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="group bg-ash/80 ring-ember/40 hover:ring-gold/70 focus-visible:outline-gold flex flex-col overflow-hidden rounded-xl shadow-lg ring-1 shadow-black/40 transition focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         <FoodImage
           src={deal.imageUrl}
           name={deal.name}
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
         />
-        <div className="flex flex-1 flex-col gap-1 p-4">
-          <h3 className="text-lg font-semibold group-hover:underline">{deal.name}</h3>
+        <div className="flex flex-1 flex-col gap-1 px-4 pb-4">
+          <h3 className="from-ember to-ember-deep ring-gold/30 relative z-10 -mt-5 rounded-md bg-linear-to-b px-3 py-2 text-center text-lg font-semibold text-white shadow-md ring-1 shadow-black/50 group-hover:underline">
+            {deal.name}
+          </h3>
           {deal.description ? (
             <p className="line-clamp-2 text-sm text-stone-400">{deal.description}</p>
           ) : null}
           <p className="mt-auto flex flex-wrap items-baseline gap-2 pt-2">
-            <span className="text-lg font-bold">{formatPrice(deal.price)}</span>
+            <span className="text-gold text-lg font-bold">{formatPrice(deal.price)}</span>
             {percent > 0 ? (
               <>
                 <s className="text-sm text-stone-500">{formatPrice(deal.originalPrice)}</s>

@@ -42,7 +42,7 @@ export function verificationConfig(source: Record<string, string | undefined>): 
 }
 
 /** The text the customer sends; the code is what proves this message belongs to their request. */
-export const verificationMessage = (code: string) => `BBQ Store code: ${code}`;
+export const verificationMessage = (code: string) => `Chaman Tikka Shop code: ${code}`;
 
 /** A link that opens WhatsApp with the message ready to send to our number. */
 export const whatsappLink = (businessNumber: string, code: string) =>

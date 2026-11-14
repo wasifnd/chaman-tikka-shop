@@ -50,7 +50,7 @@ export function ErrorPanel({ error, retry, area, homeHref }: ErrorPanelProps) {
         <Button onClick={retry}>{common('retry')}</Button>
         <Link
           href={homeHref}
-          className="focus-visible:outline-ember inline-flex min-h-11 items-center rounded-lg px-4 text-sm font-semibold text-stone-300 ring-1 ring-stone-700 hover:text-white focus-visible:outline-2"
+          className="focus-visible:outline-gold inline-flex min-h-11 items-center rounded-lg px-4 text-sm font-semibold text-stone-300 ring-1 ring-stone-700 hover:text-white focus-visible:outline-2"
         >
           {t('home')}
         </Link>

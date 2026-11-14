@@ -44,7 +44,7 @@ export function MenuBrowser({ categories }: { categories: MenuCategory[] }) {
           }}
           placeholder={t('searchPlaceholder')}
           autoComplete="off"
-          className="bg-ash focus-visible:outline-ember min-h-11 w-full rounded-lg px-3 text-stone-100 ring-1 ring-stone-700 placeholder:text-stone-500 focus-visible:outline-2"
+          className="bg-ash focus-visible:outline-gold min-h-11 w-full rounded-lg px-3 text-stone-100 ring-1 ring-stone-700 placeholder:text-stone-500 focus-visible:outline-2"
         />
         <div role="group" aria-label={t('categoryFilter')} className="flex flex-wrap gap-2">
           {[{ slug: ALL_CATEGORIES, name: t('allCategories') }, ...categories].map((item) => (
@@ -56,7 +56,7 @@ export function MenuBrowser({ categories }: { categories: MenuCategory[] }) {
                 setCategory(item.slug);
               }}
               className={cn(
-                'focus-visible:outline-ember min-h-11 rounded-full px-4 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2',
+                'focus-visible:outline-gold min-h-11 rounded-full px-4 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2',
                 category === item.slug
                   ? 'bg-ember text-white'
                   : 'bg-ash text-stone-300 ring-1 ring-stone-700 hover:text-white',
@@ -82,7 +82,7 @@ export function MenuBrowser({ categories }: { categories: MenuCategory[] }) {
       ) : (
         visible.map((section, index) => (
           <section key={section.id} id={`category-${section.slug}`} className="scroll-mt-20">
-            <h2 className="mb-3 text-xl font-bold">{section.name}</h2>
+            <h2 className="font-display text-gold mb-3 text-2xl tracking-wide">{section.name}</h2>
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {section.products.map((product, i) => (
                 <ProductCard key={product.id} product={product} priority={index === 0 && i < 2} />

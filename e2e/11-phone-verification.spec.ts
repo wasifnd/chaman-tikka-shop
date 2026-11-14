@@ -50,7 +50,7 @@ test.describe('phone verification', () => {
       expect(started.code).toMatch(/^\d{6}$/);
       expect(started.mode).toBe('whatsapp');
       expect(started.whatsappUrl).toMatch(
-        /^https:\/\/wa\.me\/\d+\?text=BBQ%20Store%20code%3A%20\d{6}$/,
+        /^https:\/\/wa\.me\/\d+\?text=Chaman%20Tikka%20Shop%20code%3A%20\d{6}$/,
       );
       expect(started.businessNumber).toMatch(/^\+\d+$/);
       expect(await status(started.id)).toBe('pending');
@@ -62,10 +62,12 @@ test.describe('phone verification', () => {
       const { id, code } = await startVerification(phone);
 
       // Someone else sending the code proves nothing.
-      expect((await whatsappMessage(randomPhone(), `BBQ Store code: ${code}`)).status).toBe(200);
+      expect((await whatsappMessage(randomPhone(), `Chaman Tikka Shop code: ${code}`)).status).toBe(
+        200,
+      );
       expect(await status(id)).toBe('pending');
       // Nor does the right phone sending the wrong code, or just chatting.
-      await whatsappMessage(phone, 'BBQ Store code: 000000');
+      await whatsappMessage(phone, 'Chaman Tikka Shop code: 000000');
       await whatsappMessage(phone, 'hello, is the shop open?');
       expect(await status(id)).toBe('pending');
 

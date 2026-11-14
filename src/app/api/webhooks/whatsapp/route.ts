@@ -69,7 +69,7 @@ async function thank(
         messaging_product: 'whatsapp',
         to: toInternational(phone),
         type: 'text',
-        text: { body: 'Your number is verified. You can go back to BBQ Store now.' },
+        text: { body: 'Your number is verified. You can go back to Chaman Tikka Shop now.' },
       }),
       signal: AbortSignal.timeout(5000),
     });

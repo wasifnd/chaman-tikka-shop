@@ -49,7 +49,7 @@ export function CartView({ zones }: { zones: ZoneOption[] }) {
         <p className="text-stone-400">{t('emptyHint')}</p>
         <Link
           href="/menu"
-          className="bg-ember focus-visible:outline-ember inline-flex min-h-11 items-center rounded-lg px-4 font-semibold text-white hover:bg-orange-600 focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="bg-ember focus-visible:outline-gold hover:bg-ember-deep inline-flex min-h-11 items-center rounded-lg px-4 font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           {t('browseMenu')}
         </Link>
@@ -138,7 +138,7 @@ export function CartView({ zones }: { zones: ZoneOption[] }) {
         {current?.canCheckout ? (
           <Link
             href="/checkout"
-            className="bg-ember focus-visible:outline-ember inline-flex min-h-11 items-center justify-center rounded-lg px-4 font-semibold text-white hover:bg-orange-600 focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="bg-ember focus-visible:outline-gold hover:bg-ember-deep inline-flex min-h-11 items-center justify-center rounded-lg px-4 font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2"
           >
             {tCheckout('proceed')}
           </Link>

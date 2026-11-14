@@ -24,7 +24,7 @@ export function Select({ label, error, className, id, ref, children, ...props }:
         aria-describedby={error ? errorId : undefined}
         className={cn(
           'bg-ash min-h-11 rounded-lg px-3 text-stone-100 ring-1 ring-stone-700',
-          'focus-visible:outline-ember focus-visible:outline-2',
+          'focus-visible:outline-gold focus-visible:outline-2',
           error && 'ring-red-500',
           className,
         )}

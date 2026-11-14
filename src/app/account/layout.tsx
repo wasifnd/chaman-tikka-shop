@@ -21,11 +21,11 @@ export default async function AccountLayout({ children }: { children: React.Reac
   if (!session.customerId) {
     return (
       <main className="mx-auto flex w-full max-w-2xl flex-col items-start gap-3 px-4 py-12">
-        <h1 className="text-2xl font-bold">{t('noProfile.title')}</h1>
+        <h1 className="font-display text-gold text-3xl tracking-wide">{t('noProfile.title')}</h1>
         <p className="text-stone-400">{t('noProfile.body')}</p>
         <Link
           href={isStaffRole(session.role) ? '/store/orders' : '/'}
-          className="text-ember underline"
+          className="text-gold underline"
         >
           {t('noProfile.link')}
         </Link>
@@ -36,7 +36,7 @@ export default async function AccountLayout({ children }: { children: React.Reac
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-8">
       <div className="mb-6 flex flex-col gap-3">
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
+        <h1 className="font-display text-gold text-3xl tracking-wide">{t('title')}</h1>
         <AccountNav />
       </div>
       {children}

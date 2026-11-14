@@ -83,7 +83,7 @@ export function OrderCard({ order, nowMs, busy, onAction }: OrderCardProps) {
           <a
             href={`tel:${order.phone}`}
             aria-label={t('callCustomer', { name: order.customerName })}
-            className="text-ember underline"
+            className="text-gold underline"
           >
             {order.phone}
           </a>

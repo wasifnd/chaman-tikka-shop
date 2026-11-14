@@ -14,7 +14,7 @@ export default async function LoginPage({
   return (
     <main className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-12">
       <div>
-        <h1 className="text-2xl font-bold">{t('loginTitle')}</h1>
+        <h1 className="font-display text-gold text-3xl tracking-wide">{t('loginTitle')}</h1>
         <p className="mt-1 text-stone-400">{t('loginSubtitle')}</p>
       </div>
       <LoginForm next={safeNextPath(typeof next === 'string' ? next : null)} />

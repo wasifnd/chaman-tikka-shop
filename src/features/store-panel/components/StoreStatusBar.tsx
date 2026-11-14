@@ -35,7 +35,7 @@ export function StoreStatusBar({ connection, chime }: { connection: StreamStatus
             if (chime.enabled) chime.disable();
             else void chime.enable();
           }}
-          className="focus-visible:outline-ember bg-ash min-h-11 rounded-lg px-3 ring-1 ring-stone-700 hover:bg-stone-800 focus-visible:outline-2"
+          className="focus-visible:outline-gold bg-ash min-h-11 rounded-lg px-3 ring-1 ring-stone-700 hover:bg-stone-800 focus-visible:outline-2"
         >
           {chime.enabled ? t('sound.off') : t('sound.enable')}
         </button>

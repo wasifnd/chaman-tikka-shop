@@ -7,7 +7,8 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: 'Deals',
-  description: 'Bundles and deals from BBQ Store that cost less than ordering item by item.',
+  description:
+    'Bundles and deals from Chaman Tikka Shop that cost less than ordering item by item.',
   alternates: { canonical: '/deals' },
 };
 
@@ -15,7 +16,7 @@ export default async function DealsPage() {
   const [deals, t] = await Promise.all([getDeals(), getTranslations('deals')]);
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8">
-      <h1 className="text-3xl font-bold">{t('title')}</h1>
+      <h1 className="font-display text-gold text-4xl tracking-wide">{t('title')}</h1>
       <p className="mt-1 mb-6 text-stone-400">{t('subtitle')}</p>
       {deals.length === 0 ? (
         <p className="text-stone-300">{t('empty')}</p>
