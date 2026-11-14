@@ -24,7 +24,7 @@ export function StoreNav() {
             href={href}
             aria-current={current ? 'page' : undefined}
             className={cn(
-              'focus-visible:outline-ember inline-flex min-h-11 items-center rounded-lg px-4 text-sm font-medium focus-visible:outline-2',
+              'focus-visible:outline-gold inline-flex min-h-11 items-center rounded-lg px-4 text-sm font-medium focus-visible:outline-2',
               current
                 ? 'bg-ember text-white'
                 : 'bg-ash text-stone-300 ring-1 ring-stone-700 hover:text-white',

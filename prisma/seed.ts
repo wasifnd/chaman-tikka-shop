@@ -157,7 +157,7 @@ async function main() {
       key: 'restaurant',
       group: 'general',
       value: {
-        name: 'BBQ Store',
+        name: 'Chaman Tikka Shop',
         address: '441-2-D1 Township, Lahore',
         timezone: 'Asia/Karachi',
         taxRatePercent: 0,

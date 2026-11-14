@@ -96,7 +96,7 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
     it('saves settings and the customer-facing pricing sees them', async () => {
       await ops.saveSettings({
         restaurant: {
-          name: 'BBQ Store',
+          name: 'Chaman Tikka Shop',
           address: 'Township',
           taxRatePercent: 16,
           orderingEnabled: false,
@@ -105,7 +105,7 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
       });
       const saved = await ops.getSettings();
       expect(saved.restaurant).toEqual({
-        name: 'BBQ Store',
+        name: 'Chaman Tikka Shop',
         address: 'Township',
         taxRatePercent: 16,
         orderingEnabled: false,
@@ -119,7 +119,12 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
       });
 
       await ops.saveSettings({
-        restaurant: { name: 'BBQ Store', address: null, taxRatePercent: 0, orderingEnabled: true },
+        restaurant: {
+          name: 'Chaman Tikka Shop',
+          address: null,
+          taxRatePercent: 0,
+          orderingEnabled: true,
+        },
         hours: week(),
       });
     });
@@ -146,14 +151,24 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
       const load = async () => toWeekHours(await db.prisma.businessHour.findMany());
 
       await ops.saveSettings({
-        restaurant: { name: 'BBQ Store', address: null, taxRatePercent: 0, orderingEnabled: true },
+        restaurant: {
+          name: 'Chaman Tikka Shop',
+          address: null,
+          taxRatePercent: 0,
+          orderingEnabled: true,
+        },
         hours: week(),
       });
       expect(isOpenAt(await load(), saturdayNight)).toBe(true);
       expect(isOpenAt(await load(), sundayEarly)).toBe(true);
 
       await ops.saveSettings({
-        restaurant: { name: 'BBQ Store', address: null, taxRatePercent: 0, orderingEnabled: true },
+        restaurant: {
+          name: 'Chaman Tikka Shop',
+          address: null,
+          taxRatePercent: 0,
+          orderingEnabled: true,
+        },
         hours: week((day) =>
           day === 6 ? { isClosed: true, openTime: '18:00', closeTime: '02:00' } : {},
         ),
@@ -165,21 +180,36 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
       expect(isOpenAt(await load(), sundayEarly)).toBe(false);
 
       await ops.saveSettings({
-        restaurant: { name: 'BBQ Store', address: null, taxRatePercent: 0, orderingEnabled: true },
+        restaurant: {
+          name: 'Chaman Tikka Shop',
+          address: null,
+          taxRatePercent: 0,
+          orderingEnabled: true,
+        },
         hours: week(),
       });
     });
 
     it('supports a daytime schedule as well as a late-night one', async () => {
       await ops.saveSettings({
-        restaurant: { name: 'BBQ Store', address: null, taxRatePercent: 0, orderingEnabled: true },
+        restaurant: {
+          name: 'Chaman Tikka Shop',
+          address: null,
+          taxRatePercent: 0,
+          orderingEnabled: true,
+        },
         hours: week(() => ({ openTime: '11:00', closeTime: '23:00' })),
       });
       const hours = toWeekHours(await db.prisma.businessHour.findMany());
       expect(isOpenAt(hours, new Date('2026-10-17T09:00:00Z'))).toBe(true); // 2 PM
       expect(isOpenAt(hours, new Date('2026-10-17T20:00:00Z'))).toBe(false); // 1 AM
       await ops.saveSettings({
-        restaurant: { name: 'BBQ Store', address: null, taxRatePercent: 0, orderingEnabled: true },
+        restaurant: {
+          name: 'Chaman Tikka Shop',
+          address: null,
+          taxRatePercent: 0,
+          orderingEnabled: true,
+        },
         hours: week(),
       });
     });

@@ -42,7 +42,9 @@ export function OrderTracker({
 
       <header>
         <p className="text-sm text-stone-400">{t('type.' + snapshot.type)}</p>
-        <h1 className="text-3xl font-bold">{t('orderNumber', { number: snapshot.orderNumber })}</h1>
+        <h1 className="font-display text-gold text-4xl tracking-wide">
+          {t('orderNumber', { number: snapshot.orderNumber })}
+        </h1>
         <p className="mt-2 text-lg font-semibold" aria-live="polite">
           {t(`status.${state.status}`)}
         </p>
@@ -77,7 +79,7 @@ export function OrderTracker({
                 className={cn(
                   'flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold',
                   step.state === 'done' && 'bg-green-600 text-white',
-                  step.state === 'current' && 'bg-ember text-white ring-4 ring-orange-900',
+                  step.state === 'current' && 'bg-ember ring-ember-deep/60 text-white ring-4',
                   step.state === 'upcoming' && 'bg-stone-800 text-stone-500',
                 )}
               >

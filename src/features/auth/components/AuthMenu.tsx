@@ -45,7 +45,7 @@ export function AuthMenu() {
         </Link>
         <Link
           href="/auth/signup"
-          className="bg-ember inline-flex min-h-11 items-center rounded-lg px-4 text-sm font-semibold text-white hover:bg-orange-600"
+          className="bg-ember hover:bg-ember-deep inline-flex min-h-11 items-center rounded-lg px-4 text-sm font-semibold text-white"
         >
           {t('signup')}
         </Link>

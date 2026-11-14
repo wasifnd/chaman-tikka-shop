@@ -7,9 +7,11 @@ afterEach(cleanup);
 
 describe('serializeJsonLd', () => {
   it('produces valid JSON', () => {
-    expect(JSON.parse(serializeJsonLd({ '@type': 'Restaurant', name: 'BBQ Store' }))).toEqual({
+    expect(
+      JSON.parse(serializeJsonLd({ '@type': 'Restaurant', name: 'Chaman Tikka Shop' })),
+    ).toEqual({
       '@type': 'Restaurant',
-      name: 'BBQ Store',
+      name: 'Chaman Tikka Shop',
     });
   });
 

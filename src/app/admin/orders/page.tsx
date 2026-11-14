@@ -55,7 +55,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
           <li key={order.id}>
             <Link
               href={`/admin/orders/${order.id}`}
-              className="bg-ash focus-visible:outline-ember flex flex-wrap items-center justify-between gap-3 rounded-xl p-4 ring-1 ring-stone-800 hover:ring-stone-600 focus-visible:outline-2"
+              className="bg-ash focus-visible:outline-gold flex flex-wrap items-center justify-between gap-3 rounded-xl p-4 ring-1 ring-stone-800 hover:ring-stone-600 focus-visible:outline-2"
             >
               <div>
                 <p className="font-semibold">{order.orderNumber}</p>
@@ -78,7 +78,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
       {pages > 1 ? (
         <nav aria-label={t('pages')} className="mt-6 flex items-center justify-between">
           {result.page > 1 ? (
-            <Link className="text-ember underline" href={pageHref(filters, result.page - 1)}>
+            <Link className="text-gold underline" href={pageHref(filters, result.page - 1)}>
               {t('previous')}
             </Link>
           ) : (
@@ -88,7 +88,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
             {t('pageOf', { page: result.page, pages })}
           </span>
           {result.page < pages ? (
-            <Link className="text-ember underline" href={pageHref(filters, result.page + 1)}>
+            <Link className="text-gold underline" href={pageHref(filters, result.page + 1)}>
               {t('next')}
             </Link>
           ) : (

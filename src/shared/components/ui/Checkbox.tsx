@@ -23,7 +23,7 @@ export function Checkbox({ label, className, id, ref, ...props }: CheckboxProps)
         id={fieldId}
         ref={ref}
         type="checkbox"
-        className="accent-ember focus-visible:outline-ember size-5 focus-visible:outline-2"
+        className="accent-ember focus-visible:outline-gold size-5 focus-visible:outline-2"
         {...props}
       />
       {label}

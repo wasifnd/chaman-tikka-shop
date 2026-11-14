@@ -188,7 +188,7 @@ export function TeamManager({
               <div>
                 <p className="font-semibold">
                   {who(member)}
-                  {you ? <span className="text-ember ml-2 text-sm">{t('you')}</span> : null}
+                  {you ? <span className="text-gold ml-2 text-sm">{t('you')}</span> : null}
                 </p>
                 <p className="text-sm text-stone-400">
                   {t(`roles.${member.role}`)} · {member.isActive ? t('active') : t('switchedOff')}

@@ -27,7 +27,7 @@ export function FoodImage({ src, name, sizes, priority = false, className }: Foo
       ) : (
         <div
           aria-hidden="true"
-          className="from-ash flex size-full items-center justify-center bg-linear-to-br to-stone-800 text-4xl font-bold text-stone-600"
+          className="flame-glow bg-char font-display text-gold/80 flex size-full items-center justify-center text-5xl"
         >
           {name.slice(0, 1).toUpperCase()}
         </div>

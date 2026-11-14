@@ -74,7 +74,7 @@ export function LoginForm({ next }: { next: string }) {
       </Button>
       <p className="text-sm text-stone-400">
         {t('noAccount')}{' '}
-        <Link href="/auth/signup" className="text-ember underline">
+        <Link href="/auth/signup" className="text-gold underline">
           {t('submitSignup')}
         </Link>
       </p>

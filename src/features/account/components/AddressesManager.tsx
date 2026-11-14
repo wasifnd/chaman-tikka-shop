@@ -227,7 +227,7 @@ export function AddressesManager({
                 <p className="font-semibold">
                   {address.label}
                   {address.isDefault ? (
-                    <span className="text-ember ml-2 text-sm">{t('defaultBadge')}</span>
+                    <span className="text-gold ml-2 text-sm">{t('defaultBadge')}</span>
                   ) : null}
                 </p>
                 <p className="text-sm text-stone-300">

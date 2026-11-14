@@ -1,6 +1,6 @@
-# BBQ Store
+# Chaman Tikka Shop
 
-Online ordering for BBQ Store, Lahore: menu, cart, checkout, live order tracking, store/kitchen panel and a lean admin.
+Online ordering for Chaman Tikka Shop, Lahore: menu, cart, checkout, live order tracking, store/kitchen panel and a lean admin.
 
 ## Setup (about 5 minutes)
 

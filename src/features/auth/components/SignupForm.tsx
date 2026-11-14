@@ -115,7 +115,7 @@ export function SignupForm({ next, pollMs }: { next: string; pollMs?: number }) 
       </Button>
       <p className="text-sm text-stone-400">
         {t('haveAccount')}{' '}
-        <Link href="/auth/login" className="text-ember underline">
+        <Link href="/auth/login" className="text-gold underline">
           {t('submitLogin')}
         </Link>
       </p>

@@ -1,6 +1,6 @@
 {
   "common": {
-    "brand": "BBQ Store",
+    "brand": "Chaman Tikka Shop",
     "loading": "Loading",
     "somethingWrong": "Something went wrong. Please try again."
   },
@@ -23,7 +23,8 @@
   "footer": {
     "tagline": "Lahore's finest BBQ.",
     "address": "441-2-D1 Township, Lahore",
-    "hours": "Open daily, 6 PM to 2 AM"
+    "hours": "Open daily, 6 PM to 2 AM",
+    "taglineUrdu": "خالص مصالحوں کے ساتھ اصل ذائقہ"
   },
   "home": {
     "heroTitle": "Fire-grilled BBQ, made to order",
@@ -35,7 +36,10 @@
     "categoriesTitle": "Browse the menu",
     "seeAll": "See full menu",
     "visitTitle": "Find us",
-    "visitServices": "Delivery, pickup and dine-in"
+    "visitServices": "Delivery, pickup and dine-in",
+    "taglineUrdu": "لذیذ اور خوش ذائقہ",
+    "spicesUrdu": "خالص مصالحوں کے ساتھ",
+    "authenticUrdu": "اصل ذائقہ"
   },
   "menu": {
     "title": "Menu",

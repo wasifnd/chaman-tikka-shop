@@ -38,7 +38,7 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
         hint={`${t(`type.${order.type}`)} · ${formatKarachi(order.createdAt)}`}
       />
       <p className="mb-4">
-        <Link href="/admin/orders" className="text-ember underline">
+        <Link href="/admin/orders" className="text-gold underline">
           {t('back')}
         </Link>
       </p>
@@ -89,7 +89,7 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
             {t('currentStatus')}: <strong>{status(order.status)}</strong>
           </p>
           <p className="mt-3">
-            <Link href="/store/orders" className="text-ember text-sm underline">
+            <Link href="/store/orders" className="text-gold text-sm underline">
               {t('openStorePanel')}
             </Link>
           </p>

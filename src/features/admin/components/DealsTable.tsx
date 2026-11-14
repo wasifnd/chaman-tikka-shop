@@ -44,7 +44,7 @@ export function DealsTable({ deals, now }: { deals: AdminDeal[]; now: string }) 
       <div>
         <Link
           href="/admin/deals/new"
-          className="bg-ember inline-flex min-h-11 items-center rounded-lg px-4 text-sm font-semibold text-white hover:bg-orange-600"
+          className="bg-ember hover:bg-ember-deep inline-flex min-h-11 items-center rounded-lg px-4 text-sm font-semibold text-white"
         >
           {t('add')}
         </Link>

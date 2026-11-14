@@ -482,7 +482,7 @@ describe('SettingsForm', () => {
   const api = useApiMock();
   const initial: AdminSettings = {
     restaurant: {
-      name: 'BBQ Store',
+      name: 'Chaman Tikka Shop',
       address: '441 Township',
       taxRatePercent: 0,
       orderingEnabled: true,
@@ -498,7 +498,7 @@ describe('SettingsForm', () => {
 
   it('shows the current settings and every day of the week', () => {
     show();
-    expect(screen.getByLabelText('Restaurant name')).toHaveValue('BBQ Store');
+    expect(screen.getByLabelText('Restaurant name')).toHaveValue('Chaman Tikka Shop');
     expect(screen.getByLabelText('Address')).toHaveValue('441 Township');
     expect(screen.getByLabelText('Tax on orders (%)')).toHaveValue(0);
     expect(screen.getByLabelText('Accept online orders')).toBeChecked();
@@ -545,7 +545,7 @@ describe('SettingsForm', () => {
       hours: Record<string, unknown>[];
     };
     expect(body.restaurant).toEqual({
-      name: 'BBQ Store',
+      name: 'Chaman Tikka Shop',
       address: '441 Township',
       taxRatePercent: 16,
       orderingEnabled: true,

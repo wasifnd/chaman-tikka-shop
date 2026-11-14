@@ -17,7 +17,7 @@ export function CartLink() {
     <Link
       href="/cart"
       aria-label={shown > 0 ? t('cartWithCount', { count: shown }) : t('cart')}
-      className="focus-visible:outline-ember relative inline-flex size-11 items-center justify-center rounded-lg text-stone-300 hover:text-white focus-visible:outline-2"
+      className="focus-visible:outline-gold relative inline-flex size-11 items-center justify-center rounded-lg text-stone-300 hover:text-white focus-visible:outline-2"
     >
       <svg
         aria-hidden="true"

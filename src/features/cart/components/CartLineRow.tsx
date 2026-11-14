@@ -63,7 +63,7 @@ export function CartLineRow({
           type="button"
           onClick={onRemove}
           aria-label={t('remove', { name: item.name })}
-          className="focus-visible:outline-ember min-h-11 rounded-lg px-3 text-sm text-stone-400 underline hover:text-white focus-visible:outline-2"
+          className="focus-visible:outline-gold min-h-11 rounded-lg px-3 text-sm text-stone-400 underline hover:text-white focus-visible:outline-2"
         >
           {t('remove', { name: item.name })}
         </button>

@@ -123,7 +123,7 @@ export function ColumnChart({
         </svg>
       </div>
       <details className="text-sm text-stone-400">
-        <summary className="focus-visible:outline-ember cursor-pointer focus-visible:outline-2">
+        <summary className="focus-visible:outline-gold cursor-pointer focus-visible:outline-2">
           {tableLabel}
         </summary>
         <table className="mt-2 w-full text-left">

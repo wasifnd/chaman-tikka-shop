@@ -80,7 +80,7 @@ export async function AnalyticsView({ report }: { report: AnalyticsReport }) {
             key={preset}
             href={`/admin?preset=${preset}`}
             aria-current={range.preset === preset ? 'page' : undefined}
-            className={`focus-visible:outline-ember inline-flex min-h-11 items-center rounded-lg px-4 text-sm font-medium focus-visible:outline-2 ${
+            className={`focus-visible:outline-gold inline-flex min-h-11 items-center rounded-lg px-4 text-sm font-medium focus-visible:outline-2 ${
               range.preset === preset
                 ? 'bg-ember text-white'
                 : 'bg-ash text-stone-300 ring-1 ring-stone-700 hover:text-white'
@@ -212,7 +212,7 @@ export async function AnalyticsView({ report }: { report: AnalyticsReport }) {
             <li key={kind}>
               <a
                 href={`/api/v1/admin/analytics/export?kind=${kind}&${query}`}
-                className="bg-ash focus-visible:outline-ember inline-flex min-h-11 items-center rounded-lg px-4 text-sm font-semibold text-stone-100 ring-1 ring-stone-700 hover:bg-stone-800 focus-visible:outline-2"
+                className="bg-ash focus-visible:outline-gold inline-flex min-h-11 items-center rounded-lg px-4 text-sm font-semibold text-stone-100 ring-1 ring-stone-700 hover:bg-stone-800 focus-visible:outline-2"
               >
                 {t(`exports.${kind}`)}
               </a>

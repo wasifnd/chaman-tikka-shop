@@ -54,12 +54,12 @@ describe('verificationConfig', () => {
 describe('codes and links', () => {
   it('builds a WhatsApp link with the message ready to send', () => {
     const link = whatsappLink('923000000000', '123456');
-    expect(link).toBe('https://wa.me/923000000000?text=BBQ%20Store%20code%3A%20123456');
+    expect(link).toBe('https://wa.me/923000000000?text=Chaman%20Tikka%20Shop%20code%3A%20123456');
     expect(decodeURIComponent(link.split('text=')[1] ?? '')).toBe(verificationMessage('123456'));
   });
 
   it.each([
-    ['BBQ Store code: 123456', '123456'],
+    ['Chaman Tikka Shop code: 123456', '123456'],
     ['123456', '123456'],
     ['hi! my code is 654321 thanks', '654321'],
   ])('finds the code in %j', (text, code) => {
@@ -99,12 +99,12 @@ describe('incomingTexts', () => {
     expect(
       incomingTexts(
         payload([
-          { from: '923001234567', type: 'text', text: { body: 'BBQ Store code: 111111' } },
+          { from: '923001234567', type: 'text', text: { body: 'Chaman Tikka Shop code: 111111' } },
           { from: '923451234567', type: 'text', text: { body: 'hello' } },
         ]),
       ),
     ).toEqual([
-      { phone: '03001234567', text: 'BBQ Store code: 111111' },
+      { phone: '03001234567', text: 'Chaman Tikka Shop code: 111111' },
       { phone: '03451234567', text: 'hello' },
     ]);
   });

@@ -49,7 +49,7 @@ export default async function AdminDashboardPage({
           <li key={card.key}>
             <Link
               href={card.href}
-              className="bg-ash focus-visible:outline-ember flex flex-col gap-1 rounded-xl p-5 ring-1 ring-stone-800 hover:ring-stone-600 focus-visible:outline-2"
+              className="bg-ash focus-visible:outline-gold flex flex-col gap-1 rounded-xl p-5 ring-1 ring-stone-800 hover:ring-stone-600 focus-visible:outline-2"
             >
               <span className="text-sm text-stone-400">{t(card.key)}</span>
               <span className="text-3xl font-bold">{card.value}</span>

@@ -12,7 +12,7 @@ export default async function CheckoutPage() {
   const [zones, t] = await Promise.all([getDeliveryZones(), getTranslations('checkout')]);
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8">
-      <h1 className="mb-6 text-3xl font-bold">{t('title')}</h1>
+      <h1 className="font-display text-gold mb-6 text-4xl tracking-wide">{t('title')}</h1>
       <CheckoutView zones={zones} />
     </main>
   );

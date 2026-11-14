@@ -1,6 +1,6 @@
 /** Single source of truth for restaurant details used in the footer, SEO and structured data. */
 export const siteConfig = {
-  name: 'BBQ Store',
+  name: 'Chaman Tikka Shop',
   tagline: "Lahore's finest BBQ",
   address: {
     street: '441-2-D1 Township',

@@ -8,7 +8,8 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: 'Menu',
-  description: 'Browse the full BBQ Store menu: tikka, kababs, chops, fresh naan and drinks.',
+  description:
+    'Browse the full Chaman Tikka Shop menu: tikka, kababs, chops, fresh naan and drinks.',
   alternates: { canonical: '/menu' },
 };
 
@@ -16,7 +17,7 @@ export default async function MenuPage() {
   const [categories, t] = await Promise.all([getMenu(), getTranslations('menu')]);
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8">
-      <h1 className="text-3xl font-bold">{t('title')}</h1>
+      <h1 className="font-display text-gold text-4xl tracking-wide">{t('title')}</h1>
       <p className="mt-1 mb-6 text-stone-400">{t('subtitle')}</p>
       <MenuBrowser categories={categories} />
     </main>
