@@ -67,10 +67,29 @@ describe('moving an order forward', () => {
     ['DINE_IN', ['CONFIRMED', 'PREPARING', 'READY', 'SERVED', 'COMPLETED']],
   ] as const)('walks a %s order from start to finish', async (type, journey) => {
     const { move, fake } = setup(type);
-    for (const status of journey) await move(status);
+    // Staff take it as far as handing it over; that also completes it, in the same step.
+    for (const status of journey.slice(0, -1)) await move(status);
     expect(fake.statusOf('o1')).toBe('COMPLETED');
     expect(fake.state.history).toHaveLength(journey.length);
     expect(fake.state.history.map((h) => h.to)).toEqual([...journey]);
+  });
+
+  it('handing over completes the order and marks it paid, recorded as two steps', async () => {
+    const { move, fake } = setup('PICKUP', 'READY');
+    const result = await move('PICKED');
+    expect(result.to).toBe('PICKED');
+    expect(fake.statusOf('o1')).toBe('COMPLETED');
+    expect(fake.state.orders.get('o1')?.paid).toBe(true);
+    expect(fake.state.history.map((h) => [h.from, h.to, h.markPaid])).toEqual([
+      ['READY', 'PICKED', false],
+      ['PICKED', 'COMPLETED', true],
+    ]);
+  });
+
+  it('going out for delivery does not finish the order', async () => {
+    const { move, fake } = setup('DELIVERY', 'READY');
+    await move('OUT_FOR_DELIVERY');
+    expect(fake.statusOf('o1')).toBe('OUT_FOR_DELIVERY');
   });
 
   it('marks the order paid only when it completes, since cash is collected then', async () => {

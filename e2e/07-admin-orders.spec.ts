@@ -91,8 +91,7 @@ test.describe('admin: orders', () => {
       'PREPARING',
       'READY',
       'OUT_FOR_DELIVERY',
-      'DELIVERED',
-      'COMPLETED',
+      'DELIVERED', // handing it over also completes it
     ]) {
       const reply = await staff.patch(`/api/v1/store/orders/${placed.delivery.id}/status`, {
         status,

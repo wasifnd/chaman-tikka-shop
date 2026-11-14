@@ -1,5 +1,6 @@
 import type { ButtonHTMLAttributes } from 'react';
 import { cn } from '@/shared/utils/cn';
+import { Spinner } from './Spinner';
 
 type Variant = 'primary' | 'secondary' | 'ghost';
 
@@ -37,6 +38,7 @@ export function Button({
       )}
       {...props}
     >
+      {loading ? <Spinner className="mr-2" /> : null}
       {children}
     </button>
   );

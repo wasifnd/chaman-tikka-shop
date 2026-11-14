@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  OFF_BOARD_STATUSES,
   ORDER_STATUSES,
   ORDER_TYPES,
   allowedTransitions,
@@ -50,7 +51,8 @@ const order = (overrides: Partial<StaffOrder> = {}): StaffOrder => ({
 describe('groupOrders', () => {
   it('puts every active status in exactly one column', () => {
     const covered = COLUMNS.flatMap((c) => c.statuses);
-    const active = ORDER_STATUSES.filter((s) => s !== 'COMPLETED' && s !== 'CANCELLED');
+    // Handed over (delivered, picked up, served), completed and cancelled orders are off the board.
+    const active = ORDER_STATUSES.filter((s) => !OFF_BOARD_STATUSES.includes(s));
     expect([...covered].sort()).toEqual([...active].sort());
     expect(new Set(covered).size).toBe(covered.length);
   });
@@ -68,7 +70,8 @@ describe('groupOrders', () => {
     expect(grouped.new.map((o) => o.id)).toEqual(['early', 'late']);
     expect(grouped.kitchen.map((o) => o.id)).toEqual(['accepted', 'cooking']);
     expect(grouped.ready.map((o) => o.id)).toEqual(['done-cooking']);
-    expect(grouped.handover.map((o) => o.id).sort()).toEqual(['collected', 'out']);
+    // Picked up means finished: it is not on the board.
+    expect(grouped.handover.map((o) => o.id)).toEqual(['out']);
   });
 
   it('ignores finished orders and works with none', () => {

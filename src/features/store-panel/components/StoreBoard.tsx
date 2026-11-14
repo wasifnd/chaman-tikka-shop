@@ -3,7 +3,8 @@
 import { useTranslations } from 'next-intl';
 import { useEffect } from 'react';
 import { useNow } from '@/features/orders/tracking/useNow';
-import { Skeleton } from '@/shared/components/ui/Skeleton';
+import { BoardColumnSkeleton } from '@/shared/components/ui/PageLoading';
+import { Spinner } from '@/shared/components/ui/Spinner';
 import { COLUMNS, groupOrders } from '../logic/board';
 import { useStoreBoard, type StoreBoard as BoardState } from '../hooks/useStoreBoard';
 import { FinishedOrders } from './FinishedOrders';
@@ -32,15 +33,27 @@ export function StoreBoard() {
   if (board.signedOut) return <SignedOutNotice />;
   if (board.loadFailed) return <LoadFailedNotice onRetry={board.reload} />;
   if (board.isLoading || board.serverTime === null) {
-    return (
-      <div aria-busy="true" className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {COLUMNS.map((column) => (
-          <Skeleton key={column.id} className="h-64" />
-        ))}
-      </div>
-    );
+    return <BoardLoading />;
   }
   return <BoardContent board={board} serverTime={board.serverTime} />;
+}
+
+/** While the orders load: the board's own columns, with order-shaped placeholders. */
+function BoardLoading() {
+  const t = useTranslations('loading');
+  return (
+    <div aria-busy="true" className="flex flex-col gap-4">
+      <p role="status" className="text-gold flex items-center gap-2 text-sm">
+        <Spinner />
+        {t('orders')}
+      </p>
+      <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {COLUMNS.map((column, index) => (
+          <BoardColumnSkeleton key={column.id} cards={index === 0 ? 2 : 1} />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function BoardContent({ board, serverTime }: { board: BoardState; serverTime: string }) {
@@ -68,21 +81,23 @@ function BoardContent({ board, serverTime }: { board: BoardState; serverTime: st
           <section
             key={column.id}
             aria-labelledby={`column-${column.id}`}
-            className="flex flex-col gap-3"
+            className="bg-char/40 flex flex-col gap-3 rounded-2xl p-3 ring-1 ring-stone-800"
           >
             <h2
               id={`column-${column.id}`}
-              className="flex items-baseline justify-between font-semibold"
+              className="flex items-center justify-between border-b border-stone-800 px-1 pb-2 font-semibold"
             >
               {t(`columns.${column.id}`)}
-              <span className="text-sm text-stone-400">{grouped[column.id].length}</span>
+              <span className="bg-ash min-w-8 rounded-full px-2 py-0.5 text-center text-sm text-stone-200 ring-1 ring-stone-700">
+                {grouped[column.id].length}
+              </span>
             </h2>
             {grouped[column.id].length === 0 ? (
               <p className="rounded-xl border border-dashed border-stone-800 p-4 text-sm text-stone-500">
                 {t('emptyColumn')}
               </p>
             ) : (
-              <ul className="flex flex-col gap-3">
+              <ul className="flex flex-col gap-4">
                 {grouped[column.id].map((order) => (
                   <OrderCard
                     key={order.id}

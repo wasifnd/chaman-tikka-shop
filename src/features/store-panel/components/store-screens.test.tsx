@@ -153,7 +153,7 @@ describe('the order board', () => {
     ]);
     expect(column('Ready').getByRole('heading', { name: 'BBQ-ready1' })).toBeInTheDocument();
     expect(
-      column('On its way / handed over').getByRole('heading', { name: 'BBQ-out1' }),
+      column('Out for delivery').getByRole('heading', { name: 'BBQ-out1' }),
     ).toBeInTheDocument();
   });
 
@@ -316,7 +316,7 @@ describe('the order board', () => {
       });
       await waitFor(() => {
         expect(
-          column('On its way / handed over').getByRole('heading', { name: 'BBQ-ready1' }),
+          column('Out for delivery').getByRole('heading', { name: 'BBQ-ready1' }),
         ).toBeInTheDocument();
       });
     });

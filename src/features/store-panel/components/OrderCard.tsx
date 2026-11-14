@@ -22,10 +22,11 @@ const timeFormat = new Intl.DateTimeFormat('en-PK', {
   timeZone: 'Asia/Karachi',
 });
 
+/** The card's edge says how urgent it is: calm, getting late, or late. */
 const URGENCY_STYLE: Record<Urgency, string> = {
-  ok: 'ring-stone-800',
-  warn: 'ring-amber-500',
-  late: 'ring-red-500',
+  ok: 'ring-stone-600 border-l-stone-500',
+  warn: 'ring-amber-500 border-l-amber-400',
+  late: 'ring-red-500 border-l-red-500',
 };
 
 interface OrderCardProps {
@@ -61,11 +62,21 @@ export function OrderCard({ order, nowMs, busy, onAction }: OrderCardProps) {
   return (
     <li
       data-urgency={urgency}
-      className={cn('bg-ash/70 flex flex-col gap-3 rounded-xl p-4 ring-2', URGENCY_STYLE[urgency])}
+      className={cn(
+        'bg-ash flex flex-col gap-3 rounded-xl border-l-4 p-4 shadow-lg ring-1 shadow-black/40',
+        URGENCY_STYLE[urgency],
+      )}
     >
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start justify-between gap-2 border-b border-stone-700/70 pb-3">
         <div>
-          <h3 className="text-lg font-bold">{order.orderNumber}</h3>
+          <h3 className="flex flex-wrap items-center gap-2 text-lg font-bold">
+            {order.orderNumber}
+            {order.source === 'COUNTER' ? (
+              <span className="bg-gold/15 text-gold ring-gold/40 rounded-full px-2 py-0.5 text-xs font-semibold ring-1">
+                {t('counterBadge')}
+              </span>
+            ) : null}
+          </h3>
           <a
             href={`/api/v1/store/orders/${order.id}/receipt`}
             target="_blank"
@@ -106,7 +117,7 @@ export function OrderCard({ order, nowMs, busy, onAction }: OrderCardProps) {
         ) : null}
       </div>
 
-      <ul className="flex flex-col gap-1.5">
+      <ul className="bg-char/60 flex flex-col gap-1.5 rounded-lg p-3 ring-1 ring-stone-800">
         {order.items.map((item, index) => (
           <li key={`${item.name}-${String(index)}`}>
             <span className="font-semibold">
@@ -131,7 +142,7 @@ export function OrderCard({ order, nowMs, busy, onAction }: OrderCardProps) {
         </p>
       ) : null}
 
-      <p className="text-sm text-stone-300">
+      <p className="border-t border-stone-700/70 pt-3 text-sm text-stone-300">
         {order.paymentStatus === 'PAID'
           ? t('paid')
           : order.paymentStatus === 'ON_KHATA'
@@ -190,7 +201,10 @@ export function OrderCard({ order, nowMs, busy, onAction }: OrderCardProps) {
             <Button
               key={action.to}
               variant={action.tone === 'danger' ? 'secondary' : 'primary'}
-              className={cn('flex-1', action.tone === 'danger' && 'text-red-300')}
+              className={cn(
+                'flex-1',
+                action.tone === 'danger' && 'text-red-300! ring-red-800 hover:bg-red-950!',
+              )}
               disabled={busy}
               onClick={() => {
                 if (action.needsReason) setCancelling(action);

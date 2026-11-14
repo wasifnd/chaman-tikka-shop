@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { Spinner } from '@/shared/components/ui/Spinner';
 import { formatPrice } from '@/shared/utils/format';
 import { useStaffOrders } from '../hooks/useStoreOrders';
 
@@ -30,7 +31,14 @@ export function FinishedOrders() {
 function FinishedList() {
   const t = useTranslations('store');
   const { data, isPending } = useStaffOrders('finished');
-  if (isPending) return null;
+  if (isPending) {
+    return (
+      <p role="status" className="text-gold mt-3 flex items-center gap-2 text-sm">
+        <Spinner />
+        {t('finished.loading')}
+      </p>
+    );
+  }
   const orders = data?.orders ?? [];
 
   return (

@@ -6,8 +6,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/shared/components/ui/Button';
+import { LinkPending } from '@/shared/components/ui/LinkPending';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
-import { isStaffRole } from '@/lib/auth/roles';
+import { ADMIN_ROLES, isStaffRole } from '@/lib/auth/roles';
 import { postJson } from '@/shared/utils/api';
 import { SESSION_QUERY_KEY, useSession } from '../hooks/useSession';
 
@@ -55,12 +56,22 @@ export function AuthMenu() {
 
   return (
     <div className="flex items-center gap-3">
+      {ADMIN_ROLES.includes(user.role) ? (
+        <Link
+          href="/admin"
+          className="inline-flex min-h-11 items-center px-3 text-sm text-stone-300 hover:text-white"
+        >
+          {t('admin')}
+          <LinkPending />
+        </Link>
+      ) : null}
       {isStaffRole(user.role) ? (
         <Link
           href="/store/orders"
           className="inline-flex min-h-11 items-center px-3 text-sm text-stone-300 hover:text-white"
         >
           {t('store')}
+          <LinkPending />
         </Link>
       ) : null}
       {user.role === 'CUSTOMER' ? (
@@ -69,6 +80,7 @@ export function AuthMenu() {
           className="inline-flex min-h-11 items-center px-3 text-sm text-stone-300 hover:text-white"
         >
           {t('account')}
+          <LinkPending />
         </Link>
       ) : null}
       <span className="hidden max-w-40 truncate text-sm text-stone-300 sm:inline">

@@ -1,11 +1,13 @@
 import type { PrismaClient } from '@prisma/client';
+import { OFF_BOARD_STATUSES } from '@/features/orders/state-machine';
 import type { StreamEvent } from '@/features/orders/services/order-stream';
 import type { StaffOrder } from '../types/staff-order.types';
 import { mapStaffOrder, toStaffEvent } from './staff-order.mapper';
 
 export type StaffOrdersDb = Pick<PrismaClient, 'order' | 'orderEvent'>;
 
-const FINISHED = ['COMPLETED', 'CANCELLED'] as const;
+/** What the "finished" list shows: handed over, completed or cancelled. */
+const FINISHED = [...OFF_BOARD_STATUSES];
 
 const orderSelect = {
   id: true,
@@ -40,23 +42,29 @@ const orderSelect = {
   statusHistory: { select: { status: true, note: true, createdAt: true } },
 } as const;
 
+/**
+ * Active orders never carry a cancellation reason, so the board skips their history: one less
+ * table to read for every order on every refresh.
+ */
+const { statusHistory: _history, ...activeSelect } = orderSelect;
+
 /** Read-only queries behind the store panel. Only ever called for signed-in staff. */
 export function createStaffOrdersRepository(db: StaffOrdersDb) {
   return {
     /** Orders still being worked on, oldest first so nothing waits at the bottom. */
     async listActive(): Promise<StaffOrder[]> {
       const rows = await db.order.findMany({
-        where: { status: { notIn: [...FINISHED] } },
+        where: { status: { notIn: FINISHED } },
         orderBy: { createdAt: 'asc' },
-        select: orderSelect,
+        select: activeSelect,
       });
-      return rows.map(mapStaffOrder);
+      return rows.map((row) => mapStaffOrder({ ...row, statusHistory: [] }));
     },
 
     /** Orders finished recently, newest first, for "what just happened". */
     async listRecentlyFinished(since: Date, limit = 50): Promise<StaffOrder[]> {
       const rows = await db.order.findMany({
-        where: { status: { in: [...FINISHED] }, updatedAt: { gte: since } },
+        where: { status: { in: FINISHED }, updatedAt: { gte: since } },
         orderBy: { updatedAt: 'desc' },
         take: limit,
         select: orderSelect,

@@ -18,7 +18,8 @@
     "logout": "Log out",
     "loggingOut": "Logging out",
     "store": "Store",
-    "account": "My account"
+    "account": "My account",
+    "admin": "Admin"
   },
   "footer": {
     "tagline": "Lahore's finest BBQ.",
@@ -228,7 +229,8 @@
       "orders": "Orders",
       "kitchen": "Kitchen display",
       "counter": "Counter",
-      "khata": "Khata"
+      "khata": "Khata",
+      "admin": "Admin panel"
     },
     "title": "Store orders",
     "kitchenTitle": "Kitchen",
@@ -236,7 +238,7 @@
       "new": "New",
       "kitchen": "In the kitchen",
       "ready": "Ready",
-      "handover": "On its way / handed over"
+      "handover": "Out for delivery"
     },
     "emptyColumn": "Nothing here",
     "noOrders": "No active orders. New orders appear here by themselves.",
@@ -306,12 +308,14 @@
       "show": "Show recently finished orders",
       "hide": "Hide recently finished orders",
       "title": "Recently finished",
-      "empty": "Nothing finished in the last 12 hours."
+      "empty": "Nothing finished in the last 12 hours.",
+      "loading": "Loading finished orders…"
     },
     "panel": "Store panel",
     "receipt": "Receipt",
     "receiptLabel": "Open the receipt for order {number}",
-    "onKhata": "Paid {paid}, {remaining} on khata"
+    "onKhata": "Paid {paid}, {remaining} on khata",
+    "counterBadge": "Counter"
   },
   "admin": {
     "panel": "Admin panel",
@@ -889,5 +893,10 @@
     "byName": "by {name}",
     "balanceShort": "Balance {amount}",
     "customerSees": "The customer sees this on their khata."
+  },
+  "loading": {
+    "page": "Loading…",
+    "orders": "Loading orders…",
+    "menu": "Loading the menu…"
   }
 }

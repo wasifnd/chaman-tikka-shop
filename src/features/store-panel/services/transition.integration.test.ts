@@ -73,7 +73,8 @@ describe.skipIf(!url)('changing order status against Postgres', () => {
     'records every step of a %s order',
     async (type, journey) => {
       const order = await newOrder(type);
-      for (const status of journey) await move(order.id, status);
+      // Staff move it up to the hand-over; handing over completes it in the same step.
+      for (const status of journey.slice(0, -1)) await move(order.id, status);
 
       const stored = await db.prisma.order.findUniqueOrThrow({
         where: { id: order.id },
@@ -157,11 +158,13 @@ describe.skipIf(!url)('changing order status against Postgres', () => {
 
       const stored = await db.prisma.order.findUniqueOrThrow({
         where: { id: order.id },
-        include: { statusHistory: true },
+        include: { statusHistory: { orderBy: { createdAt: 'asc' } } },
       });
-      expect(stored.statusHistory).toHaveLength(1);
-      expect(stored.status).toBe(stored.statusHistory[0]?.status);
-      expect(stored.status).toBe(pickup.ok ? 'PICKED' : 'CANCELLED');
+      // Picked up also completes it (two history rows); a cancellation is one.
+      expect(stored.statusHistory.map((h) => h.status)).toEqual(
+        pickup.ok ? ['PICKED', 'COMPLETED'] : ['CANCELLED'],
+      );
+      expect(stored.status).toBe(pickup.ok ? 'COMPLETED' : 'CANCELLED');
     }, 120_000);
 
     it('keeps an unbroken history when accepting and rejecting race, whichever runs first', async () => {
