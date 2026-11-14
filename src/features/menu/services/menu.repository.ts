@@ -8,7 +8,7 @@ import {
   type DealRow,
   type ProductDetailRow,
 } from './menu.mappers';
-import type { DealSummary, MenuCategory, ProductDetail } from '../types/menu.types';
+import type { CounterMenu, DealSummary, MenuCategory, ProductDetail } from '../types/menu.types';
 
 const productSelect = {
   id: true,
@@ -88,6 +88,61 @@ export function createMenuRepository(prisma: PrismaClient) {
         },
       });
       return row ? mapProductDetail(row) : null;
+    },
+
+    /**
+     * Everything the counter can sell, with each product's options, in one query, so the cashier
+     * never waits for a product page. Items out of stock are included but marked.
+     */
+    async listCounterMenu(now: Date): Promise<CounterMenu> {
+      const [categories, deals] = await Promise.all([
+        prisma.category.findMany({
+          where: { isActive: true },
+          orderBy: { sortOrder: 'asc' },
+          select: {
+            id: true,
+            nameEn: true,
+            products: {
+              where: { isActive: true },
+              orderBy: { sortOrder: 'asc' },
+              select: {
+                ...productSelect,
+                category: { select: { slug: true, nameEn: true } },
+                variantGroups: {
+                  orderBy: { sortOrder: 'asc' },
+                  select: {
+                    id: true,
+                    nameEn: true,
+                    isRequired: true,
+                    variants: {
+                      orderBy: { sortOrder: 'asc' },
+                      select: { id: true, nameEn: true, priceModifier: true, isAvailable: true },
+                    },
+                  },
+                },
+                productAddons: {
+                  select: {
+                    addon: { select: { id: true, nameEn: true, price: true, isAvailable: true } },
+                  },
+                },
+              },
+            },
+          },
+        }),
+        this.listDeals(now),
+      ]);
+      return {
+        categories: categories
+          .map((category) => ({
+            id: category.id,
+            name: category.nameEn,
+            products: category.products.map((product) =>
+              mapProductDetail({ ...product, images: [] }),
+            ),
+          }))
+          .filter((category) => category.products.length > 0),
+        deals,
+      };
     },
 
     async listDeals(now: Date): Promise<DealSummary[]> {

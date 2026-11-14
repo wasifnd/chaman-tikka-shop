@@ -1,5 +1,6 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
 import type { OrderStatus, OrderType } from '@/features/orders/state-machine';
+import { createKhataTx } from '@/features/khata/services/khata.store';
 import { qualifier } from '@/lib/prisma/sql';
 import type { TransitionStore, TransitionTx } from './transition.ports';
 
@@ -7,6 +8,16 @@ function createTx(db: Prisma.TransactionClient, schema: string): TransitionTx {
   const table = qualifier(schema);
 
   return {
+    khata: createKhataTx(db, schema),
+
+    async khataChargeFor(orderId) {
+      const entry = await db.khataEntry.findFirst({
+        where: { orderId, kind: 'ORDER' },
+        select: { khataId: true, amount: true },
+      });
+      return entry ? { khataId: entry.khataId, amount: Number(entry.amount.toString()) } : null;
+    },
+
     async lockOrder(orderId) {
       // FOR UPDATE holds the row until this transaction ends: a second staff member changing the
       // same order waits here, then sees the new status and is refused by the state machine.
@@ -28,10 +39,15 @@ function createTx(db: Prisma.TransactionClient, schema: string): TransitionTx {
     },
 
     async applyTransition({ orderId, from, to, userId, note, at, markPaid }) {
-      await db.order.update({
-        where: { id: orderId },
-        data: { status: to, ...(markPaid ? { paymentStatus: 'PAID' } : {}) },
-      });
+      await db.order.update({ where: { id: orderId }, data: { status: to } });
+      if (markPaid) {
+        // Only an order still waiting for its money becomes paid. One left on a khata stays
+        // "on khata": the shop is owed the rest, and that is tracked in the khata, not here.
+        await db.order.updateMany({
+          where: { id: orderId, paymentStatus: 'PENDING' },
+          data: { paymentStatus: 'PAID' },
+        });
+      }
       await db.orderStatusHistory.create({
         data: {
           orderId,

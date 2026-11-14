@@ -3,7 +3,7 @@ import type { OrderStatus, OrderType } from '../state-machine';
 import { describeOptions } from '../services/order-snapshot';
 
 export type PaymentMethod = 'COD' | 'CASH_AT_RESTAURANT';
-export type PaymentStatus = 'PENDING' | 'PAID' | 'REFUNDED';
+export type PaymentStatus = 'PENDING' | 'PAID' | 'REFUNDED' | 'ON_KHATA';
 
 export interface ReceiptLine {
   name: string;
@@ -34,6 +34,8 @@ export interface ReceiptData {
   deliveryCharge: number;
   taxAmount: number;
   grandTotal: number;
+  /** Counter orders: what was paid at the till (the rest went on the khata). Null for online orders. */
+  amountPaid: number | null;
 }
 
 type Money = { toString(): string } | number;
@@ -56,6 +58,7 @@ export interface ReceiptRow {
   deliveryCharge: Money;
   taxAmount: Money;
   grandTotal: Money;
+  amountPaid: Money | null;
   coupon: { code: string } | null;
   items: {
     productNameSnapshot: string;
@@ -110,6 +113,7 @@ export function mapReceipt(row: ReceiptRow): ReceiptData {
     deliveryCharge: toNumber(row.deliveryCharge),
     taxAmount: toNumber(row.taxAmount),
     grandTotal: toNumber(row.grandTotal),
+    amountPaid: row.amountPaid === null ? null : toNumber(row.amountPaid),
   };
 }
 

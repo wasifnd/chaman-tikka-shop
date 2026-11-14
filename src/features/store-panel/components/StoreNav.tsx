@@ -7,7 +7,9 @@ import { cn } from '@/shared/utils/cn';
 
 const LINKS = [
   { href: '/store/orders', key: 'orders' },
+  { href: '/store/counter', key: 'counter' },
   { href: '/store/kitchen', key: 'kitchen' },
+  { href: '/store/khata', key: 'khata' },
 ] as const;
 
 export function StoreNav() {
@@ -15,9 +17,9 @@ export function StoreNav() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label={t('label')} className="flex gap-2">
+    <nav aria-label={t('label')} className="flex flex-wrap gap-2">
       {LINKS.map(({ href, key }) => {
-        const current = pathname === href;
+        const current = pathname === href || pathname.startsWith(`${href}/`);
         return (
           <Link
             key={href}

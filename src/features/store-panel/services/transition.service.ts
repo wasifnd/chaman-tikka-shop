@@ -1,6 +1,7 @@
 import { canTransition, type OrderStatus } from '@/features/orders/state-machine';
 import { AppError } from '@/lib/errors';
-import type { TransitionStore } from './transition.ports';
+import { fromMinor, toMinor } from '@/lib/money';
+import type { TransitionStore, TransitionTx } from './transition.ports';
 
 export interface TransitionInput {
   status: OrderStatus;
@@ -17,6 +18,38 @@ export interface TransitionResult {
   from: OrderStatus;
   to: OrderStatus;
   at: Date;
+  /** How much a cancellation took back off the customer's khata (absent when none). */
+  khataReversed?: number;
+}
+
+/**
+ * Cancelling a counter order left on a khata takes its charge back off, in the same transaction.
+ * Never more than is still owed: if some of it was already paid, only the rest comes off (money
+ * already paid is for the shop to hand back in person).
+ */
+async function reverseKhataCharge(
+  tx: TransitionTx,
+  order: { id: string; orderNumber: string },
+  userId: string,
+  at: Date,
+): Promise<number> {
+  const charge = await tx.khataChargeFor(order.id);
+  if (!charge) return 0;
+  const khata = await tx.khata.lock(charge.khataId);
+  if (!khata) return 0;
+  const back = Math.min(toMinor(charge.amount), toMinor(khata.balance));
+  if (back <= 0) return 0;
+  await tx.khata.addEntry({
+    khataId: khata.id,
+    kind: 'REDUCTION',
+    amount: fromMinor(-back),
+    balanceAfter: fromMinor(toMinor(khata.balance) - back),
+    orderId: order.id,
+    note: `Order ${order.orderNumber} cancelled`,
+    userId,
+    at,
+  });
+  return fromMinor(back);
 }
 
 /**
@@ -70,8 +103,17 @@ export function createTransitionService(
           at,
           markPaid: to === 'COMPLETED',
         });
+        const khataReversed =
+          to === 'CANCELLED' ? await reverseKhataCharge(tx, order, actor.userId, at) : 0;
 
-        return { id: order.id, orderNumber: order.orderNumber, from: order.status, to, at };
+        return {
+          id: order.id,
+          orderNumber: order.orderNumber,
+          from: order.status,
+          to,
+          at,
+          ...(khataReversed > 0 ? { khataReversed } : {}),
+        };
       });
     },
   };

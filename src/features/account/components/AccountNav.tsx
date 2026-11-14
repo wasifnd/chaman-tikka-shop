@@ -7,6 +7,7 @@ import { cn } from '@/shared/utils/cn';
 
 const LINKS = [
   { href: '/account/orders', key: 'orders' },
+  { href: '/account/khata', key: 'khata' },
   { href: '/account/addresses', key: 'addresses' },
 ] as const;
 
@@ -15,7 +16,7 @@ export function AccountNav() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label={t('label')} className="flex gap-2">
+    <nav aria-label={t('label')} className="flex flex-wrap gap-2">
       {LINKS.map(({ href, key }) => {
         const current = pathname === href || pathname.startsWith(`${href}/`);
         return (
@@ -24,7 +25,7 @@ export function AccountNav() {
             href={href}
             aria-current={current ? 'page' : undefined}
             className={cn(
-              'focus-visible:outline-gold inline-flex min-h-11 items-center rounded-lg px-4 text-sm font-medium focus-visible:outline-2',
+              'focus-visible:outline-gold inline-flex min-h-11 items-center rounded-lg px-4 text-sm font-medium whitespace-nowrap focus-visible:outline-2',
               current
                 ? 'bg-ember text-white'
                 : 'bg-ash text-stone-300 ring-1 ring-stone-700 hover:text-white',

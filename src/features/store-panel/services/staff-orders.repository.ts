@@ -25,6 +25,8 @@ const orderSelect = {
   grandTotal: true,
   paymentMethod: true,
   paymentStatus: true,
+  source: true,
+  amountPaid: true,
   items: {
     select: {
       productNameSnapshot: true,

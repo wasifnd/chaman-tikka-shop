@@ -1,5 +1,6 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
 import { createQuoteLoader } from '@/features/checkout/services/quote.repository';
+import { createKhataTx } from '@/features/khata/services/khata.store';
 import { qualifier } from '@/lib/prisma/sql';
 import type { OrderRecord, PlacedOrder } from '../types/order.types';
 import type { IdempotencyClaim, OrderStore, OrderTx } from './order.ports';
@@ -59,6 +60,10 @@ function createTx(db: Prisma.TransactionClient, schema: string): OrderTx {
           phoneVerifiedAt: record.phoneVerifiedAt,
           type: record.type,
           status: record.status,
+          source: record.source,
+          paymentStatus: record.paymentStatus,
+          amountPaid: record.amountPaid,
+          placedByUserId: record.placedByUserId,
           ...(record.deliveryAddress
             ? {
                 deliveryAddressSnapshot: record.deliveryAddress as unknown as Prisma.InputJsonValue,
@@ -92,22 +97,31 @@ function createTx(db: Prisma.TransactionClient, schema: string): OrderTx {
       return { id: order.id, trackingToken: order.trackingToken };
     },
 
-    async recordOrderCreated(orderId, at) {
+    async recordOrderCreated(orderId, at, acceptedBy = null) {
       await db.orderStatusHistory.create({
         data: {
           orderId,
           fromStatus: null,
           status: 'RECEIVED',
-          note: 'Order placed',
+          note: acceptedBy ? 'Taken at the counter' : 'Order placed',
+          changedByUserId: acceptedBy,
           createdAt: at,
         },
       });
+      if (acceptedBy) {
+        await db.orderStatusHistory.create({
+          data: {
+            orderId,
+            fromStatus: 'RECEIVED',
+            status: 'CONFIRMED',
+            changedByUserId: acceptedBy,
+            createdAt: at,
+          },
+        });
+      }
+      const status = acceptedBy ? 'CONFIRMED' : 'RECEIVED';
       await db.orderEvent.create({
-        data: {
-          orderId,
-          type: 'order.created',
-          payload: { status: 'RECEIVED', at: at.toISOString() },
-        },
+        data: { orderId, type: 'order.created', payload: { status, at: at.toISOString() } },
       });
     },
 
@@ -129,6 +143,30 @@ function createTx(db: Prisma.TransactionClient, schema: string): OrderTx {
         },
       });
       return { ...order, grandTotal: Number(order.grandTotal.toString()) };
+    },
+
+    khata: createKhataTx(db, schema),
+
+    async findCounterSettlement(orderId) {
+      const order = await db.order.findUniqueOrThrow({
+        where: { id: orderId },
+        select: {
+          grandTotal: true,
+          amountPaid: true,
+          khataEntries: {
+            where: { kind: 'ORDER' },
+            take: 1,
+            select: { amount: true, balanceAfter: true, khataId: true },
+          },
+        },
+      });
+      const entry = order.khataEntries[0];
+      return {
+        amountPaid: Number((order.amountPaid ?? order.grandTotal).toString()),
+        remaining: entry ? Number(entry.amount.toString()) : 0,
+        // The balance right after this order, as it was first reported, not today's.
+        khata: entry ? { id: entry.khataId, balance: Number(entry.balanceAfter.toString()) } : null,
+      };
     },
   };
 }

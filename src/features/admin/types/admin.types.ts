@@ -77,7 +77,7 @@ export interface AdminOrderRow {
   customerName: string;
   phone: string;
   grandTotal: number;
-  paymentStatus: 'PENDING' | 'PAID' | 'REFUNDED';
+  paymentStatus: 'PENDING' | 'PAID' | 'REFUNDED' | 'ON_KHATA';
   paymentMethod: 'COD' | 'CASH_AT_RESTAURANT';
   createdAt: string;
 }

@@ -134,7 +134,12 @@ export function OrderCard({ order, nowMs, busy, onAction }: OrderCardProps) {
       <p className="text-sm text-stone-300">
         {order.paymentStatus === 'PAID'
           ? t('paid')
-          : t('collect', { amount: formatPrice(order.grandTotal) })}
+          : order.paymentStatus === 'ON_KHATA'
+            ? t('onKhata', {
+                paid: formatPrice(order.amountPaid ?? 0),
+                remaining: formatPrice(Math.max(0, order.grandTotal - (order.amountPaid ?? 0))),
+              })
+            : t('collect', { amount: formatPrice(order.grandTotal) })}
       </p>
 
       {order.status === 'CANCELLED' ? (

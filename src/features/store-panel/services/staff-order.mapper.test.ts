@@ -32,6 +32,8 @@ const row: StaffOrderRow = {
   grandTotal: decimal('1560.00'),
   paymentMethod: 'COD',
   paymentStatus: 'PENDING',
+  source: 'ONLINE',
+  amountPaid: null,
   items: [
     {
       productNameSnapshot: 'Chicken Tikka',

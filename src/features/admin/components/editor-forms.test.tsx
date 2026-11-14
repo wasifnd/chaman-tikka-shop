@@ -486,6 +486,7 @@ describe('SettingsForm', () => {
       address: '441 Township',
       taxRatePercent: 0,
       orderingEnabled: true,
+      khataLimit: 10000,
     },
     hours: Array.from({ length: 7 }, (_, dayOfWeek) => ({
       dayOfWeek,
@@ -549,6 +550,7 @@ describe('SettingsForm', () => {
       address: '441 Township',
       taxRatePercent: 16,
       orderingEnabled: true,
+      khataLimit: 10000,
     });
     expect(body.hours).toHaveLength(7);
     expect(body.hours[5]).toEqual({

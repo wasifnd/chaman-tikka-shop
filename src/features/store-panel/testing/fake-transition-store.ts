@@ -1,3 +1,4 @@
+import type { LockedKhata, NewKhataEntry } from '@/features/khata/services/khata.ports';
 import type { OrderStatus, OrderType } from '@/features/orders/state-machine';
 import type {
   LockedOrder,
@@ -13,11 +14,18 @@ interface FakeOrder extends LockedOrder {
 interface FakeState {
   orders: Map<string, FakeOrder>;
   history: TransitionRecord[];
+  khatas: Map<string, LockedKhata>;
+  entries: NewKhataEntry[];
+  /** Order id to the khata and amount it put on it. */
+  charges: Map<string, { khataId: string; amount: number }>;
 }
 
 const clone = (state: FakeState): FakeState => ({
   orders: new Map([...state.orders].map(([id, order]) => [id, { ...order }])),
   history: [...state.history],
+  khatas: new Map([...state.khatas].map(([id, k]) => [id, { ...k }])),
+  entries: [...state.entries],
+  charges: new Map(state.charges),
 });
 
 /**
@@ -33,6 +41,9 @@ export function createFakeTransitionStore(
       initial.map((order) => [order.id, { orderNumber: `BBQ-${order.id}`, ...order, paid: false }]),
     ),
     history: [],
+    khatas: new Map(),
+    entries: [],
+    charges: new Map(),
   };
 
   const tx: TransitionTx = {
@@ -52,6 +63,22 @@ export function createFakeTransitionStore(
       if (record.markPaid) order.paid = true;
       state.history.push(record);
       return Promise.resolve();
+    },
+    khataChargeFor: (orderId) => Promise.resolve(state.charges.get(orderId) ?? null),
+    khata: {
+      lock(khataId) {
+        const found = state.khatas.get(khataId);
+        return Promise.resolve(found ? { ...found } : null);
+      },
+      lockOrOpen: () => Promise.reject(new Error('not used')),
+      addEntry(entry) {
+        state.entries.push(entry);
+        const khata = state.khatas.get(entry.khataId);
+        if (khata) khata.balance = entry.balanceAfter;
+        return Promise.resolve({ id: `entry-${String(state.entries.length)}` });
+      },
+      findByRequestKey: () => Promise.resolve(null),
+      defaultLimit: () => Promise.resolve(10_000),
     },
   };
 
@@ -73,5 +100,16 @@ export function createFakeTransitionStore(
       return state;
     },
     statusOf: (id: string) => state.orders.get(id)?.status,
+    /** Put an order on a khata that now owes `balance`. */
+    putOnKhata(orderId: string, amount: number, balance: number) {
+      state.khatas.set('k1', {
+        id: 'k1',
+        phone: '03331234500',
+        name: 'Bilal',
+        balance,
+        creditLimit: null,
+      });
+      state.charges.set(orderId, { khataId: 'k1', amount });
+    },
   };
 }

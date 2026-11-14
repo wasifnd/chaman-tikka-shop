@@ -32,6 +32,8 @@ const order = (overrides: Partial<StaffOrder> = {}): StaffOrder => ({
   grandTotal: 1560,
   paymentMethod: 'COD',
   paymentStatus: 'PENDING',
+  source: 'ONLINE',
+  amountPaid: null,
   cancelReason: null,
   ...overrides,
 });

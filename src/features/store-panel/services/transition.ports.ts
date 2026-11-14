@@ -1,3 +1,4 @@
+import type { KhataTx } from '@/features/khata/services/khata.ports';
 import type { OrderStatus, OrderType } from '@/features/orders/state-machine';
 
 export interface LockedOrder {
@@ -25,6 +26,10 @@ export interface TransitionTx {
   lockOrder(orderId: string): Promise<LockedOrder | null>;
   /** Updates the order and writes its history row and its live-update event. */
   applyTransition(record: TransitionRecord): Promise<void>;
+  /** What a counter order put on a khata, if anything (so a cancellation can take it back). */
+  khataChargeFor(orderId: string): Promise<{ khataId: string; amount: number } | null>;
+  /** Khata changes in the same transaction as the status change. */
+  khata: KhataTx;
 }
 
 export interface TransitionStore {

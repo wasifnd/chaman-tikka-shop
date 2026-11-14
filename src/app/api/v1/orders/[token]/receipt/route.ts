@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { canSeeFullReceipt, redactForLink } from '@/features/orders/receipt/receipt-data';
 import { receiptResponse } from '@/features/orders/receipt/receipt.repository';
+import { khataRepository } from '@/features/khata/server';
 import { getReceiptRepository } from '@/features/orders/server';
 import { getSession } from '@/lib/auth/session';
 import { AppError } from '@/lib/errors';
@@ -24,7 +25,13 @@ export const GET = route(async (request: Request, { params }: Context) => {
     : null;
   if (!found) throw new AppError('ORDER_NOT_FOUND', 'We could not find that order.', 404);
 
-  const full = canSeeFullReceipt(found.customerId, await getSession());
+  const session = await getSession();
+  const full =
+    canSeeFullReceipt(found.customerId, session) ||
+    // A counter order left on a khata is also the khata owner's to see in full.
+    (session !== null &&
+      found.khataPhone !== null &&
+      (await khataRepository.verifiedPhone(session.userId)) === found.khataPhone);
   const download = new URL(request.url).searchParams.get('download') === '1';
   return receiptResponse(full ? found.receipt : redactForLink(found.receipt), download);
 });
