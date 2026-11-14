@@ -162,6 +162,7 @@ async function main() {
         timezone: 'Asia/Karachi',
         taxRatePercent: 0,
         orderingEnabled: true,
+        khataLimit: 10000,
       },
     },
   });

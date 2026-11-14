@@ -38,6 +38,8 @@ const order = (
   grandTotal: 100,
   paymentMethod: 'COD',
   paymentStatus: 'PENDING',
+  source: 'ONLINE',
+  amountPaid: null,
   cancelReason: null,
   ...overrides,
 });

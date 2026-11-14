@@ -76,6 +76,16 @@ export function SettingsForm({ initial }: { initial: AdminSettings }) {
           error={errors.restaurant?.taxRatePercent?.message}
           {...register('restaurant.taxRatePercent', { valueAsNumber: true })}
         />
+        <Input
+          label={t('khataLimit')}
+          hint={t('khataLimitHint')}
+          type="number"
+          step="1"
+          min="0"
+          inputMode="numeric"
+          error={errors.restaurant?.khataLimit?.message}
+          {...register('restaurant.khataLimit', { valueAsNumber: true })}
+        />
         <Checkbox label={t('orderingEnabled')} {...register('restaurant.orderingEnabled')} />
         {ordering ? null : (
           <p role="status" className="rounded-lg bg-amber-950 px-3 py-2 text-sm text-amber-200">

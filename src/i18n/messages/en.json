@@ -226,7 +226,9 @@
     "nav": {
       "label": "Store navigation",
       "orders": "Orders",
-      "kitchen": "Kitchen display"
+      "kitchen": "Kitchen display",
+      "counter": "Counter",
+      "khata": "Khata"
     },
     "title": "Store orders",
     "kitchenTitle": "Kitchen",
@@ -308,7 +310,8 @@
     },
     "panel": "Store panel",
     "receipt": "Receipt",
-    "receiptLabel": "Open the receipt for order {number}"
+    "receiptLabel": "Open the receipt for order {number}",
+    "onKhata": "Paid {paid}, {remaining} on khata"
   },
   "admin": {
     "panel": "Admin panel",
@@ -344,7 +347,8 @@
       "coupons": "Coupons",
       "settings": "Settings",
       "team": "Team",
-      "storePanel": "Open store panel"
+      "storePanel": "Open store panel",
+      "khata": "Khata"
     },
     "dashboard": {
       "title": "Today at a glance",
@@ -520,7 +524,9 @@
       },
       "closed": "Closed",
       "opens": "{day} opens",
-      "closes": "{day} closes"
+      "closes": "{day} closes",
+      "khataLimit": "Default khata limit (Rs.)",
+      "khataLimitHint": "How much a customer may owe on their khata. You can give anyone their own limit on their khata page."
     },
     "team": {
       "title": "Team",
@@ -589,7 +595,8 @@
       "payment": {
         "PENDING": "Payment pending",
         "PAID": "Paid",
-        "REFUNDED": "Refunded"
+        "REFUNDED": "Refunded",
+        "ON_KHATA": "On khata"
       },
       "method": {
         "COD": "Cash on delivery",
@@ -708,7 +715,8 @@
     "nav": {
       "label": "Account navigation",
       "orders": "My orders",
-      "addresses": "My addresses"
+      "addresses": "My addresses",
+      "khata": "My khata"
     },
     "noProfile": {
       "title": "This account has no order history",
@@ -763,5 +771,123 @@
     "failed": "Could not start the check. Please try again.",
     "devNotice": "Test mode: WhatsApp is not set up on this computer, so press the button instead of sending the message.",
     "devConfirm": "Pretend I sent it"
+  },
+  "counter": {
+    "menu": "Menu",
+    "search": "Find an item",
+    "categories": "Categories",
+    "all": "All",
+    "deals": "Deals",
+    "deal": "Deal",
+    "unavailable": "Not available",
+    "ticket": "Order",
+    "orderType": "Order type",
+    "type": {
+      "PICKUP": "Takeaway",
+      "DINE_IN": "Dine in"
+    },
+    "emptyTicket": "Tap items on the menu to add them.",
+    "quantityOf": "Quantity of {name}",
+    "fewer": "One fewer",
+    "more": "One more",
+    "remove": "Remove",
+    "removeItem": "Remove {name}",
+    "cancel": "Cancel",
+    "addFor": "Add · {amount}",
+    "total": "Total",
+    "payment": "Payment",
+    "mode": {
+      "FULL": "Paid in full",
+      "PART": "Part paid",
+      "NONE": "Unpaid"
+    },
+    "amountPaid": "Amount paid now (Rs.)",
+    "khata": "Khata",
+    "phone": "Customer phone number",
+    "name": "Customer name",
+    "nameHint": "Ask the customer and check it matches the khata.",
+    "useName": "Use this name",
+    "existingKhata": "{name} already owes {balance} (limit {limit}).",
+    "newKhata": "No khata for this number yet. A new one will be opened (limit {limit}).",
+    "paidNow": "Paid now",
+    "toKhata": "On khata",
+    "khataAfter": "Khata after this order",
+    "khataNow": "Khata balance now",
+    "overLimit": "This goes over the khata limit of {limit}. At most {room} more can go on it.",
+    "notes": "Kitchen notes (optional)",
+    "placePaid": "Place order · collect {amount}",
+    "placeOnKhata": "Place order · {amount} on khata",
+    "placedTitle": "Order {number} placed",
+    "printReceipt": "Print receipt",
+    "openKhata": "Open the khata",
+    "newOrder": "New order",
+    "maybePlaced": "An earlier try of this order may already have gone through. Check the Orders board before placing it again."
+  },
+  "khata": {
+    "title": "Khata",
+    "hint": "What customers owe from counter orders, biggest first.",
+    "search": "Phone number or name",
+    "showPaidUp": "Include paid-up khatas",
+    "find": "Search",
+    "totalOwed": "{amount} owed across {count, plural, one {# khata} other {# khatas}}",
+    "noMatch": "No khata matches that search.",
+    "nobodyOwes": "Nobody owes anything right now.",
+    "customer": "Customer",
+    "phone": "Phone",
+    "owes": "Owes",
+    "limit": "Limit",
+    "ownLimit": "own limit",
+    "pages": "Pages",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {page} of {pages}",
+    "back": "← All khatas",
+    "statementPdf": "Download statement (PDF)",
+    "statementCsv": "Download statement (Excel)",
+    "history": "History",
+    "noEntries": "No entries yet.",
+    "date": "Date",
+    "what": "What",
+    "amount": "Amount",
+    "balanceAfter": "Balance",
+    "by": "By",
+    "receipt": "Receipt",
+    "kind": {
+      "ORDER": "Order",
+      "PAYMENT": "Payment",
+      "CHARGE": "Charge",
+      "REDUCTION": "Reduction",
+      "WRITE_OFF": "Written off"
+    },
+    "takePayment": "Take a payment",
+    "amountReceived": "Amount received (Rs.)",
+    "owesNow": "Owes {amount} now.",
+    "noteOptional": "Note (optional)",
+    "savePayment": "Save payment",
+    "paymentSaved": "Payment saved.",
+    "correct": "Correct the khata",
+    "correctionType": "Correction",
+    "writeOffWhat": "This clears the whole balance of {amount}.",
+    "reason": "Reason",
+    "saveCorrection": "Save correction",
+    "correctionSaved": "Correction saved.",
+    "ownLimitTitle": "Limit for this customer",
+    "limitAmount": "Limit (Rs.)",
+    "limitHint": "Leave it on the shop default ({amount}) unless this customer needs a different one.",
+    "saveLimit": "Save limit",
+    "useDefault": "Use the shop default",
+    "limitSaved": "Limit saved.",
+    "mine": {
+      "title": "My khata",
+      "hint": "What you owe the shop from orders at the counter. Pay at the counter to clear it.",
+      "owe": "You owe",
+      "limit": "Your limit",
+      "statementPdf": "Download statement (PDF)",
+      "statementCsv": "Download statement (Excel)",
+      "none": "You have no khata with us."
+    },
+    "byName": "by {name}",
+    "balanceShort": "Balance {amount}",
+    "customerSees": "The customer sees this on their khata."
   }
 }

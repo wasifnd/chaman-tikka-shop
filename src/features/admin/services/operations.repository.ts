@@ -14,6 +14,8 @@ import type {
 } from '../schemas/operations.schema';
 import type { AdminCoupon, AdminSettings, AdminZone, TeamMember } from '../types/admin.types';
 import { isNotFound, isUniqueViolation } from './prisma-errors';
+import { DEFAULT_KHATA_LIMIT } from '@/features/khata/logic/khata-rules';
+import { readDefaultLimit } from '@/features/khata/services/khata.store';
 
 const SETTINGS_KEY = 'restaurant';
 const DEFAULT_RESTAURANT: RestaurantSettingsInput = {
@@ -21,6 +23,7 @@ const DEFAULT_RESTAURANT: RestaurantSettingsInput = {
   address: null,
   taxRatePercent: 0,
   orderingEnabled: true,
+  khataLimit: DEFAULT_KHATA_LIMIT,
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -29,11 +32,13 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 function readRestaurant(value: unknown): RestaurantSettingsInput {
   if (!isRecord(value)) return DEFAULT_RESTAURANT;
   const { name, address, taxRatePercent, orderingEnabled } = value;
+  const khataLimit = readDefaultLimit(value);
   return {
     name: typeof name === 'string' && name.trim() ? name : DEFAULT_RESTAURANT.name,
     address: typeof address === 'string' && address.trim() ? address : null,
     taxRatePercent: typeof taxRatePercent === 'number' ? taxRatePercent : 0,
     orderingEnabled: typeof orderingEnabled === 'boolean' ? orderingEnabled : true,
+    khataLimit,
   };
 }
 

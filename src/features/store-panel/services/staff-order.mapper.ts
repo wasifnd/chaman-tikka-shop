@@ -24,7 +24,9 @@ export interface StaffOrderRow {
   taxAmount: Money;
   grandTotal: Money;
   paymentMethod: PaymentMethod;
-  paymentStatus: 'PENDING' | 'PAID' | 'REFUNDED';
+  paymentStatus: 'PENDING' | 'PAID' | 'REFUNDED' | 'ON_KHATA';
+  source: 'ONLINE' | 'COUNTER';
+  amountPaid: Money | null;
   items: {
     productNameSnapshot: string;
     variantSnapshot: unknown;
@@ -81,6 +83,8 @@ export function mapStaffOrder(row: StaffOrderRow): StaffOrder {
     grandTotal: toNumber(row.grandTotal),
     paymentMethod: row.paymentMethod,
     paymentStatus: row.paymentStatus,
+    source: row.source,
+    amountPaid: row.amountPaid === null ? null : toNumber(row.amountPaid),
     cancelReason: cancellation?.note ?? null,
   };
 }

@@ -76,3 +76,9 @@ export interface DealSummary {
   endsAt: string | null;
   items: DealItemSummary[];
 }
+
+/** What the counter screen sells: every product with its options, and the live deals. */
+export interface CounterMenu {
+  categories: { id: string; name: string; products: ProductDetail[] }[];
+  deals: DealSummary[];
+}

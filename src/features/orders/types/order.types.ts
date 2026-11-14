@@ -28,11 +28,19 @@ export interface OrderItemRecord {
 export interface OrderRecord {
   orderNumber: string;
   customerId: string | null;
-  contact: { name: string; phone: string; email: string | null };
+  /** Phone is missing only for a counter order paid in full by someone who gave no number. */
+  contact: { name: string; phone: string | null; email: string | null };
   /** When the contact number was proven. Only proven orders are linked to an account later. */
   phoneVerifiedAt: Date | null;
   type: OrderType;
-  status: 'RECEIVED';
+  /** Online orders wait for staff to accept them; staff's own counter orders start accepted. */
+  status: 'RECEIVED' | 'CONFIRMED';
+  source: 'ONLINE' | 'COUNTER';
+  paymentStatus: 'PENDING' | 'PAID' | 'ON_KHATA';
+  /** Counter orders: paid at the till. Null for online orders. */
+  amountPaid: number | null;
+  /** Counter orders: the staff member who took it. */
+  placedByUserId: string | null;
   deliveryAddress: DeliveryAddressSnapshot | null;
   subtotal: number;
   couponDiscount: number;
@@ -44,6 +52,14 @@ export interface OrderRecord {
   specialInstructions: string | null;
   estimatedReadyAt: Date;
   items: OrderItemRecord[];
+}
+
+/** A counter order once placed, with where its money went. */
+export interface PlacedCounterOrder extends PlacedOrder {
+  amountPaid: number;
+  /** What went on the khata (0 when paid in full). */
+  remaining: number;
+  khata: { id: string; balance: number } | null;
 }
 
 export interface PlacedOrder {

@@ -100,6 +100,7 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
           address: 'Township',
           taxRatePercent: 16,
           orderingEnabled: false,
+          khataLimit: 10000,
         },
         hours: week(),
       });
@@ -109,6 +110,7 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
         address: 'Township',
         taxRatePercent: 16,
         orderingEnabled: false,
+        khataLimit: 10000,
       });
 
       // What the checkout reads is exactly what the owner saved.
@@ -124,6 +126,7 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
           address: null,
           taxRatePercent: 0,
           orderingEnabled: true,
+          khataLimit: 10000,
         },
         hours: week(),
       });
@@ -137,7 +140,13 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
         },
       });
       await ops.saveSettings({
-        restaurant: { name: 'Y', address: null, taxRatePercent: 5, orderingEnabled: true },
+        restaurant: {
+          name: 'Y',
+          address: null,
+          taxRatePercent: 5,
+          orderingEnabled: true,
+          khataLimit: 10000,
+        },
         hours: week(),
       });
       const raw = await db.prisma.setting.findUnique({ where: { key: 'restaurant' } });
@@ -156,6 +165,7 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
           address: null,
           taxRatePercent: 0,
           orderingEnabled: true,
+          khataLimit: 10000,
         },
         hours: week(),
       });
@@ -168,6 +178,7 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
           address: null,
           taxRatePercent: 0,
           orderingEnabled: true,
+          khataLimit: 10000,
         },
         hours: week((day) =>
           day === 6 ? { isClosed: true, openTime: '18:00', closeTime: '02:00' } : {},
@@ -185,6 +196,7 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
           address: null,
           taxRatePercent: 0,
           orderingEnabled: true,
+          khataLimit: 10000,
         },
         hours: week(),
       });
@@ -197,6 +209,7 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
           address: null,
           taxRatePercent: 0,
           orderingEnabled: true,
+          khataLimit: 10000,
         },
         hours: week(() => ({ openTime: '11:00', closeTime: '23:00' })),
       });
@@ -209,6 +222,7 @@ describe.skipIf(!url)('running the restaurant against Postgres', () => {
           address: null,
           taxRatePercent: 0,
           orderingEnabled: true,
+          khataLimit: 10000,
         },
         hours: week(),
       });

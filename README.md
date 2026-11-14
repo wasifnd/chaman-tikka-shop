@@ -53,6 +53,23 @@ demo accounts for local development: `03000000002` (store staff) and `0300000000
 is `SEED_DEMO_PASSWORD` if set, otherwise a default written in `prisma/seed.ts`. **Change it, or delete
 these accounts, before going live.**
 
+## Counter orders and khata
+
+`/store/counter` is the cashier's screen for takeaway and dine-in orders taken in person. The cashier taps
+items, then picks **Paid in full**, **Part paid** (types the amount received) or **Unpaid**. Whatever isn't
+paid goes on the customer's **khata**, found by mobile number; the cashier asks the customer's name and checks
+it against the khata. Counter orders go straight to the kitchen, already accepted. Their receipt shows the
+total, what was paid and what remains.
+
+- A khata can't go over its limit: Rs. 10,000 by default (**Admin, Settings**), or a limit admin sets for
+  one customer on their khata page.
+- Staff see every khata at `/store/khata`, biggest balance first, and take payments; each payment has its
+  own PDF receipt. Statements download as PDF or as a spreadsheet.
+- Only admin (`/admin/khata`) can correct a khata: add a charge, reduce it or write it off, always with a
+  reason. Nothing is ever edited or deleted; every entry records who made it and when.
+- Customers see their own khata, read-only, under **My khata** once they sign up with that number.
+- Online orders never go on a khata.
+
 ## Phone verification (WhatsApp)
 
 Every account and every order needs a proven mobile number. Proving it is free: the site shows a 6-digit

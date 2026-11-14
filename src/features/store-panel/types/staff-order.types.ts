@@ -31,7 +31,11 @@ export interface StaffOrder {
   taxAmount: number;
   grandTotal: number;
   paymentMethod: PaymentMethod;
-  paymentStatus: 'PENDING' | 'PAID' | 'REFUNDED';
+  paymentStatus: 'PENDING' | 'PAID' | 'REFUNDED' | 'ON_KHATA';
+  /** Taken at the counter by staff, or placed on the website. */
+  source: 'ONLINE' | 'COUNTER';
+  /** Counter orders: what was paid at the till. The rest is on the customer's khata. */
+  amountPaid: number | null;
   /** Why staff cancelled the order, when they did. */
   cancelReason: string | null;
 }

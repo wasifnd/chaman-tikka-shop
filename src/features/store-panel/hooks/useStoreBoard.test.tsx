@@ -27,6 +27,8 @@ const order = (id: string, status: StaffOrder['status'] = 'RECEIVED'): StaffOrde
   grandTotal: 0,
   paymentMethod: 'COD',
   paymentStatus: 'PENDING',
+  source: 'ONLINE',
+  amountPaid: null,
   cancelReason: null,
 });
 

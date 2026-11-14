@@ -230,3 +230,48 @@ describe('transitionRequestSchema', () => {
     expect(transitionRequestSchema.safeParse(body).success).toBe(false);
   });
 });
+
+describe('cancelling an order left on a khata', () => {
+  it('takes the charge back off the khata, with the order named', async () => {
+    const { fake, move } = setup('PICKUP', 'CONFIRMED');
+    fake.putOnKhata('o1', 380, 500);
+    const result = await move('CANCELLED', 'Customer left');
+    expect(result.khataReversed).toBe(380);
+    expect(fake.state.entries).toEqual([
+      {
+        khataId: 'k1',
+        kind: 'REDUCTION',
+        amount: -380,
+        balanceAfter: 120,
+        orderId: 'o1',
+        note: 'Order BBQ-o1 cancelled',
+        userId: 'staff-1',
+        at: NOW,
+      },
+    ]);
+  });
+
+  it('never takes off more than is still owed', async () => {
+    const { fake, move } = setup('PICKUP', 'CONFIRMED');
+    fake.putOnKhata('o1', 380, 100); // most of it was already paid
+    expect((await move('CANCELLED', 'Customer left')).khataReversed).toBe(100);
+    expect(fake.state.khatas.get('k1')?.balance).toBe(0);
+  });
+
+  it('does nothing to a khata that owes nothing, or for orders not on a khata', async () => {
+    const paidUp = setup('PICKUP', 'CONFIRMED');
+    paidUp.fake.putOnKhata('o1', 380, 0);
+    expect((await paidUp.move('CANCELLED', 'Customer left')).khataReversed).toBeUndefined();
+    expect(paidUp.fake.state.entries).toHaveLength(0);
+
+    const online = setup('PICKUP', 'CONFIRMED');
+    expect((await online.move('CANCELLED', 'Customer left')).khataReversed).toBeUndefined();
+  });
+
+  it('other moves never touch the khata', async () => {
+    const { fake, move } = setup('PICKUP', 'CONFIRMED');
+    fake.putOnKhata('o1', 380, 500);
+    await move('PREPARING');
+    expect(fake.state.entries).toHaveLength(0);
+  });
+});

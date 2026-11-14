@@ -18,6 +18,7 @@ const shop = {
 };
 
 const row: ReceiptRow = {
+  amountPaid: null,
   orderNumber: 'BBQ-2026-0042',
   createdAt: new Date('2026-11-14T16:30:00Z'), // 9:30 PM in Lahore
   type: 'DELIVERY',
@@ -237,6 +238,37 @@ describe('receipt PDF', () => {
     expect(text.split('\n').find((line) => line.startsWith('Deliver to:'))?.length).toBeLessThan(
       long.length,
     );
+  });
+
+  it('a counter order shows what was paid and what went on the khata', async () => {
+    const text = await pdfText(
+      await renderReceiptPdf(
+        mapReceipt({ ...row, type: 'PICKUP', paymentStatus: 'ON_KHATA', amountPaid: 200 }),
+        shop,
+      ),
+    );
+    expect(text).toContain('On khata');
+    expect(text).toContain('Paid');
+    expect(text).toContain('Remaining');
+    expect(text).toContain('The remaining amount was added to your khata.');
+  });
+
+  it('a counter order paid in full shows nothing remaining and no khata line', async () => {
+    const receipt = mapReceipt({
+      ...row,
+      type: 'PICKUP',
+      paymentStatus: 'PAID',
+      amountPaid: 1_458,
+    });
+    expect(receipt.amountPaid).toBe(1_458);
+    const text = await pdfText(await renderReceiptPdf(receipt, shop));
+    expect(text).toContain('Remaining');
+    expect(text).not.toContain('added to your khata');
+  });
+
+  it('an online order has no paid or remaining lines', async () => {
+    const text = await pdfText(await renderReceiptPdf(mapReceipt(row), shop));
+    expect(text).not.toContain('Remaining');
   });
 
   it('names the file after the order', () => {

@@ -32,3 +32,6 @@ export const getDeal = unstable_cache(
   ['deal'],
   { tags: [DEALS_TAG], revalidate: DEALS_REVALIDATE_SECONDS },
 );
+
+/** The counter's menu, read fresh every time so stock changes show at the till at once. */
+export const getCounterMenu = () => repository.listCounterMenu(new Date());

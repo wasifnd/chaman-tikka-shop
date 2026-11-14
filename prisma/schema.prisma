@@ -1,6 +1,6 @@
 // Chaman Tikka Shop — release 1 schema.
-// Trimmed from the blueprint: Khata, CMS, media, wishlist, notifications and audit logs
-// are deferred. Added: OrderEvent (realtime catch-up) and IdempotencyKey (safe retries).
+// Trimmed from the blueprint: CMS, media, wishlist, notifications and audit logs are deferred.
+// Added: OrderEvent (realtime catch-up) and IdempotencyKey (safe retries).
 
 generator client {
   provider = "prisma-client-js"
@@ -45,6 +45,23 @@ enum PaymentStatus {
   PENDING
   PAID
   REFUNDED
+  /// Taken at the counter with part or all of it left on the customer's khata.
+  ON_KHATA
+}
+
+/// Where an order came from: the website, or staff at the counter.
+enum OrderSource {
+  ONLINE
+  COUNTER
+}
+
+/// What a khata entry is. ORDER and CHARGE add to what is owed; the rest take it away.
+enum KhataEntryKind {
+  ORDER
+  PAYMENT
+  CHARGE
+  REDUCTION
+  WRITE_OFF
 }
 
 enum CouponType {
@@ -76,6 +93,8 @@ model User {
   customer      Customer?
   refreshTokens RefreshToken[]
   statusChanges OrderStatusHistory[]
+  placedOrders  Order[]              @relation("PlacedOrders")
+  khataEntries  KhataEntry[]
 
   @@map("users")
 }
@@ -346,9 +365,16 @@ model Order {
   estimatedReadyAt        DateTime?     @map("estimated_ready_at")
   // Unguessable token so guests can open their tracking page without an account.
   trackingToken           String        @unique @default(dbgenerated("gen_random_uuid()::text")) @map("tracking_token")
+  source                  OrderSource   @default(ONLINE)
+  // Counter orders only: what the customer paid at the till. The rest went on their khata.
+  amountPaid              Decimal?      @map("amount_paid") @db.Decimal(10, 2)
+  // Counter orders only: the staff member who took the order.
+  placedByUserId          String?       @map("placed_by_user_id") @db.Uuid
   createdAt               DateTime      @default(now()) @map("created_at")
   updatedAt               DateTime      @updatedAt @map("updated_at")
 
+  placedBy        User?                @relation("PlacedOrders", fields: [placedByUserId], references: [id])
+  khataEntries    KhataEntry[]
   customer        Customer?            @relation(fields: [customerId], references: [id])
   deliveryAddress Address?             @relation(fields: [deliveryAddressId], references: [id])
   coupon          Coupon?              @relation(fields: [couponId], references: [id])
@@ -360,6 +386,50 @@ model Order {
   @@index([customerId, createdAt])
   @@index([guestPhone])
   @@map("orders")
+}
+
+/// What a customer owes the shop, by phone number. Only staff open one, from a counter order.
+/// The balance is never typed in: it is the running total of the entries, kept in step with them
+/// in the same transaction that adds each entry.
+model Khata {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone       String   @unique
+  name        String
+  balance     Decimal  @default(0) @db.Decimal(12, 2)
+  // Null means the shop's default limit (Settings) applies.
+  creditLimit Decimal? @map("credit_limit") @db.Decimal(12, 2)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  entries KhataEntry[]
+
+  @@index([balance])
+  @@map("khatas")
+}
+
+/// One line in a khata. Never edited or deleted: a correction is a new entry.
+model KhataEntry {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  khataId         String         @map("khata_id") @db.Uuid
+  kind            KhataEntryKind
+  // Positive adds to what is owed, negative takes it away.
+  amount          Decimal        @db.Decimal(12, 2)
+  balanceAfter    Decimal        @map("balance_after") @db.Decimal(12, 2)
+  orderId         String?        @map("order_id") @db.Uuid
+  note            String?
+  createdByUserId String         @map("created_by_user_id") @db.Uuid
+  // The key the till or admin screen sent with a payment or correction: a retry of the same
+  // request finds this entry instead of recording the money twice.
+  requestKey      String?        @unique @map("request_key")
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  khata     Khata  @relation(fields: [khataId], references: [id], onDelete: Restrict)
+  order     Order? @relation(fields: [orderId], references: [id])
+  createdBy User   @relation(fields: [createdByUserId], references: [id])
+
+  @@index([khataId, createdAt])
+  @@index([orderId])
+  @@map("khata_entries")
 }
 
 /// A request to prove a phone number: the customer sends the code to our WhatsApp number from that

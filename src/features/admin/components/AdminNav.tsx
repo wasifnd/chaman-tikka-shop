@@ -8,6 +8,7 @@ import { cn } from '@/shared/utils/cn';
 const LINKS = [
   { href: '/admin', key: 'dashboard' },
   { href: '/admin/orders', key: 'orders' },
+  { href: '/admin/khata', key: 'khata' },
   { href: '/admin/menu', key: 'menu' },
   { href: '/admin/categories', key: 'categories' },
   { href: '/admin/addons', key: 'addons' },

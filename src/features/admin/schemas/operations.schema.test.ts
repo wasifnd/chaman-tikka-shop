@@ -14,6 +14,7 @@ describe('restaurantSettingsSchema', () => {
     address: '',
     taxRatePercent: 5,
     orderingEnabled: true,
+    khataLimit: 10000,
   };
 
   it('accepts valid settings and turns a blank address into null', () => {

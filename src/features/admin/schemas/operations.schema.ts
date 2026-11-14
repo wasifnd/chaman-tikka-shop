@@ -25,6 +25,12 @@ export const restaurantSettingsSchema = z.object({
       'Use at most 2 decimals',
     ),
   orderingEnabled: z.boolean(),
+  /** How much a customer may owe on their khata unless admin gives them their own limit. */
+  khataLimit: z
+    .number('Enter an amount')
+    .int('Use whole rupees')
+    .min(0, 'Cannot be negative')
+    .max(10_000_000, 'That limit is too large'),
 });
 export type RestaurantSettingsInput = z.output<typeof restaurantSettingsSchema>;
 export type RestaurantSettingsFormValues = z.input<typeof restaurantSettingsSchema>;
