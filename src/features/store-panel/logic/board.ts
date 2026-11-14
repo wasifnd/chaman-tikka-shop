@@ -12,7 +12,8 @@ export const COLUMNS: { id: ColumnId; statuses: readonly OrderStatus[] }[] = [
   { id: 'new', statuses: ['RECEIVED'] },
   { id: 'kitchen', statuses: ['CONFIRMED', 'PREPARING'] },
   { id: 'ready', statuses: ['READY'] },
-  { id: 'handover', statuses: ['OUT_FOR_DELIVERY', 'DELIVERED', 'PICKED', 'SERVED'] },
+  // Once handed over (delivered, picked up, served) the order is finished and leaves the board.
+  { id: 'handover', statuses: ['OUT_FOR_DELIVERY'] },
 ];
 
 /** Active orders grouped into columns, oldest first so nothing gets buried. */

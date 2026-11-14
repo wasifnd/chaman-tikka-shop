@@ -349,7 +349,8 @@ describe.skipIf(!url)('khata against Postgres', { timeout: 60_000 }, () => {
       createPrismaTransitionStore(db.prisma, { schema: db.schema, ...TIMING }),
       () => OPEN_NOW,
     );
-    for (const to of ['PREPARING', 'READY', 'PICKED', 'COMPLETED'] as const) {
+    // Picked up finishes the order (completing it) in the same step.
+    for (const to of ['PREPARING', 'READY', 'PICKED'] as const) {
       await transitions.transition(placed.id, { status: to }, { userId: staffId });
     }
     const order = await db.prisma.order.findUniqueOrThrow({ where: { id: placed.id } });

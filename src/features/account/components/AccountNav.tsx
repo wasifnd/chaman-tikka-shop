@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { LinkPending } from '@/shared/components/ui/LinkPending';
 import { cn } from '@/shared/utils/cn';
 
 const LINKS = [
@@ -32,6 +33,7 @@ export function AccountNav() {
             )}
           >
             {t(key)}
+            <LinkPending />
           </Link>
         );
       })}

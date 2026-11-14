@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useNow } from '@/features/orders/tracking/useNow';
-import { Skeleton } from '@/shared/components/ui/Skeleton';
+import { BoardColumnSkeleton } from '@/shared/components/ui/PageLoading';
 import { cn } from '@/shared/utils/cn';
 import {
   actionsFor,
@@ -40,9 +40,9 @@ export function KitchenDisplay() {
   if (board.loadFailed) return <LoadFailedNotice onRetry={board.reload} />;
   if (board.isLoading || board.serverTime === null) {
     return (
-      <div aria-busy="true" className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <Skeleton className="h-64" />
-        <Skeleton className="h-64" />
+      <div aria-busy="true" className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <BoardColumnSkeleton />
+        <BoardColumnSkeleton />
       </div>
     );
   }
@@ -105,15 +105,18 @@ function Ticket({
   return (
     <li
       data-urgency={urgency}
-      className={cn('bg-ash/70 flex flex-col gap-3 rounded-xl p-5 ring-4', URGENCY_STYLE[urgency])}
+      className={cn(
+        'bg-ash flex flex-col gap-3 rounded-xl p-5 shadow-lg ring-4 shadow-black/40',
+        URGENCY_STYLE[urgency],
+      )}
     >
-      <div className="flex items-baseline justify-between">
+      <div className="flex items-baseline justify-between border-b border-stone-700/70 pb-3">
         <h3 className="text-3xl font-bold">{order.orderNumber}</h3>
         <p className="text-xl">{formatAge(ageMinutes(order, nowMs))}</p>
       </div>
       <p className="text-lg text-stone-300">{t(`type.${order.type}`)}</p>
 
-      <ul className="flex flex-col gap-2">
+      <ul className="bg-char/60 flex flex-col gap-2 rounded-lg p-3 ring-1 ring-stone-800">
         {order.items.map((item, index) => (
           <li key={`${item.name}-${String(index)}`} className="text-2xl">
             <span className="font-bold">

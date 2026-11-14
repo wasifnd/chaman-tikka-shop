@@ -1,4 +1,8 @@
-import { canTransition, type OrderStatus } from '@/features/orders/state-machine';
+import {
+  HANDOVER_STATUSES,
+  canTransition,
+  type OrderStatus,
+} from '@/features/orders/state-machine';
 import { AppError } from '@/lib/errors';
 import { fromMinor, toMinor } from '@/lib/money';
 import type { TransitionStore, TransitionTx } from './transition.ports';
@@ -103,6 +107,19 @@ export function createTransitionService(
           at,
           markPaid: to === 'COMPLETED',
         });
+        // Handing the food over is the end of the order: it is completed (and, unless it is
+        // on a khata, marked paid) in the same step, so it leaves the board at once.
+        if (HANDOVER_STATUSES.includes(to)) {
+          await tx.applyTransition({
+            orderId: order.id,
+            from: to,
+            to: 'COMPLETED',
+            userId: actor.userId,
+            note: null,
+            at,
+            markPaid: true,
+          });
+        }
         const khataReversed =
           to === 'CANCELLED' ? await reverseKhataCharge(tx, order, actor.userId, at) : 0;
 

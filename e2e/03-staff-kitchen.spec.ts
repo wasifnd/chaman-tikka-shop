@@ -142,11 +142,13 @@ test.describe('store staff and kitchen', () => {
       [
         'delivery',
         'DELIVERY',
-        ['CONFIRMED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY', 'DELIVERED', 'COMPLETED'],
+        ['CONFIRMED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY', 'DELIVERED'],
       ],
-      ['pickup', 'PICKUP', ['CONFIRMED', 'PREPARING', 'READY', 'PICKED', 'COMPLETED']],
-      ['dine-in', 'DINE_IN', ['CONFIRMED', 'PREPARING', 'READY', 'SERVED', 'COMPLETED']],
+      ['pickup', 'PICKUP', ['CONFIRMED', 'PREPARING', 'READY', 'PICKED']],
+      ['dine-in', 'DINE_IN', ['CONFIRMED', 'PREPARING', 'READY', 'SERVED']],
     ];
+    // Handing the food over finishes the order in the same step.
+    const HANDOVER = ['DELIVERED', 'PICKED', 'SERVED'];
 
     for (const [label, type, steps] of journeys) {
       test(`a ${label} order goes from new to complete, and the customer sees every step`, async () => {
@@ -157,11 +159,13 @@ test.describe('store staff and kitchen', () => {
         for (const status of steps) {
           const reply = await move(id, status);
           expect(reply.status, `${label} -> ${status}: ${reply.text}`).toBe(200);
-          expect((await customerSees(placed.trackingToken)).status).toBe(status);
+          expect((await customerSees(placed.trackingToken)).status).toBe(
+            HANDOVER.includes(status) ? 'COMPLETED' : status,
+          );
         }
 
         const timeline = (await customerSees(placed.trackingToken)).timeline.map((t) => t.status);
-        expect(timeline).toEqual(['RECEIVED', ...steps]);
+        expect(timeline).toEqual(['RECEIVED', ...steps, 'COMPLETED']);
 
         // Finished orders leave the live board and move to "recently finished".
         expect(await find(placed.orderNumber)).toBeUndefined();
@@ -229,7 +233,7 @@ test.describe('store staff and kitchen', () => {
     test('a finished order is final', async () => {
       const placed = await order('DINE_IN');
       const id = (await find(placed.orderNumber))?.id ?? '';
-      for (const status of ['CONFIRMED', 'PREPARING', 'READY', 'SERVED', 'COMPLETED']) {
+      for (const status of ['CONFIRMED', 'PREPARING', 'READY', 'SERVED']) {
         await move(id, status);
       }
       for (const status of ['PREPARING', 'CANCELLED', 'RECEIVED', 'COMPLETED']) {

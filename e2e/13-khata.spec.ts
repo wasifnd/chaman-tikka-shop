@@ -283,6 +283,10 @@ test.describe('khata', () => {
     expect((await staff.get(`/store/khata/${khataId}`)).status).toBe(200);
     expect((await admin.get(`/admin/khata/${khataId}`)).status).toBe(200);
     expect((await staff.get('/store/counter')).status).toBe(200);
+    // A khata that doesn't exist is a real 404, on both panels.
+    expect((await staff.page(`/store/khata/${randomUUID()}`)).status).toBe(404);
+    expect((await admin.page(`/admin/khata/${randomUUID()}`)).status).toBe(404);
+    expect((await admin.page('/admin/khata/not-a-uuid')).status).toBe(404);
   });
 
   test('only admin corrects, always with a reason', async () => {

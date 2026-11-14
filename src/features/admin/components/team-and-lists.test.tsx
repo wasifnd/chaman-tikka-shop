@@ -40,7 +40,9 @@ describe('TeamManager', () => {
     show('ADMIN');
     expect(screen.getByText('boss@shop.pk')).toBeInTheDocument();
     expect(screen.getByText('(you)')).toBeInTheDocument();
-    expect(screen.getByText(/Store staff · Active · last signed in/)).toBeInTheDocument();
+    expect(screen.getByText(/Store staff · last signed in/)).toBeInTheDocument();
+    // On and off are told apart at a glance: a coloured badge, and a differently coloured button.
+    expect(screen.getAllByText('Active').length).toBeGreaterThan(0);
     // Two of the three have never signed in.
     expect(screen.getAllByText(/has not signed in yet/)).toHaveLength(2);
   });

@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import type { Role } from '@/lib/auth/roles';
 import { Alert } from '@/shared/components/ui/Alert';
 import { Button } from '@/shared/components/ui/Button';
+import { cn } from '@/shared/utils/cn';
 import { Input } from '@/shared/components/ui/Input';
 import { Select } from '@/shared/components/ui/Select';
 import { useAdminApi } from '../hooks/useAdminApi';
@@ -183,7 +184,10 @@ export function TeamManager({
           return (
             <li
               key={member.id}
-              className="bg-ash flex flex-wrap items-center justify-between gap-3 rounded-xl p-4 ring-1 ring-stone-800"
+              className={cn(
+                'bg-ash flex flex-wrap items-center justify-between gap-3 rounded-xl p-4 ring-1',
+                member.isActive ? 'ring-stone-700' : 'opacity-75 ring-stone-800',
+              )}
             >
               <div>
                 <p className="font-semibold">
@@ -191,7 +195,24 @@ export function TeamManager({
                   {you ? <span className="text-gold ml-2 text-sm">{t('you')}</span> : null}
                 </p>
                 <p className="text-sm text-stone-400">
-                  {t(`roles.${member.role}`)} · {member.isActive ? t('active') : t('switchedOff')}
+                  <span
+                    className={cn(
+                      'mr-2 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold',
+                      member.isActive
+                        ? 'bg-green-950 text-green-300 ring-1 ring-green-700'
+                        : 'bg-stone-800 text-stone-300 ring-1 ring-stone-600',
+                    )}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        'size-2 rounded-full',
+                        member.isActive ? 'bg-green-400' : 'bg-stone-500',
+                      )}
+                    />
+                    {member.isActive ? t('active') : t('switchedOff')}
+                  </span>
+                  {t(`roles.${member.role}`)}
                   {' · '}
                   {member.lastLoginAt
                     ? t('lastSignIn', {
@@ -204,6 +225,11 @@ export function TeamManager({
                 <div className="flex gap-1">
                   <Button
                     variant="secondary"
+                    className={
+                      member.isActive
+                        ? 'text-red-300! ring-red-800 hover:bg-red-950! hover:ring-red-600'
+                        : 'bg-green-800! text-white! ring-green-600 hover:bg-green-700! hover:ring-green-500'
+                    }
                     aria-label={
                       member.isActive
                         ? t('switchOffLabel', { who: who(member) })

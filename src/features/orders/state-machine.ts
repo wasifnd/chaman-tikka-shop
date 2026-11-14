@@ -37,6 +37,15 @@ const FINAL_STEP: Partial<Record<OrderStatus, OrderStatus>> = {
 
 export const TERMINAL_STATUSES: readonly OrderStatus[] = ['COMPLETED', 'CANCELLED'];
 
+/** The customer has the food. Staff mark one of these, and the order is then finished too. */
+export const HANDOVER_STATUSES: readonly OrderStatus[] = ['DELIVERED', 'PICKED', 'SERVED'];
+
+/** Done as far as the store board is concerned: handed over, completed or cancelled. */
+export const OFF_BOARD_STATUSES: readonly OrderStatus[] = [
+  ...HANDOVER_STATUSES,
+  ...TERMINAL_STATUSES,
+];
+
 export function allowedTransitions(type: OrderType, from: OrderStatus): readonly OrderStatus[] {
   if (from === 'RECEIVED' || from === 'CONFIRMED' || from === 'PREPARING') return COMMON[from];
   if (from === 'READY') return [AFTER_READY[type], 'CANCELLED'];
